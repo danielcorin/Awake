@@ -24,6 +24,8 @@ a setting, and each can be overridden per session:
 | `toggle-hotkey` | — | System-wide shortcut that toggles a session. Empty disables it. | none |
 
 The UI is the menu bar icon: a sun while a session runs, a moon otherwise.
+The panel drops straight down from the icon like a menu and closes when it
+loses focus or you click away.
 **Click it to toggle; Option-click (or right-click) opens the panel** with the
 switch, the three assertion checkboxes, a duration, and **About** (icon and
 version). `activate-at-launch` and the API address/port are CLI-only settings.

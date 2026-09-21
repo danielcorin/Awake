@@ -69,8 +69,8 @@ final class AppRuntime: ApplicationOperations {
 @MainActor
 final class StatusItemController: NSObject {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let popover = NSPopover()
-    private var fallbackWindow: NSWindow?
+    private var panel: MenuPanel?
+    private var outsideClickMonitor: Any?
     private var observers: [NSObjectProtocol] = []
 
     /// `sun.max.fill` and `moon.zzz` have different glyph bounds (19x18 against
@@ -97,8 +97,6 @@ final class StatusItemController: NSObject {
 
     override init() {
         super.init()
-        popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: ContentView())
         item.length = Self.iconWidth
         if let button = item.button {
             button.target = self
@@ -112,7 +110,6 @@ final class StatusItemController: NSObject {
             MainActor.assumeIsolated { self?.refresh() }
         })
         // Dismiss like a menu: anything that takes focus away closes the panel.
-        // A transient popover only handles clicks inside this app.
         observers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -125,19 +122,63 @@ final class StatusItemController: NSObject {
         observers.forEach(NotificationCenter.default.removeObserver)
     }
 
-    var isPanelVisible: Bool { popover.isShown || fallbackWindow?.isVisible == true }
+    var isPanelVisible: Bool { panel?.isVisible == true }
 
+    /// Drops the panel straight down from the status item, the way a menu does.
+    /// An `NSPopover` would draw its caret pointing at the item.
     func showPanel() {
         guard !isPanelVisible else { return }
-        // A crowded menu bar parks hidden status items offscreen, where an
-        // anchored popover would be drawn off the side. Fall back to a window.
-        guard let button = item.button, let frame = button.window?.frame,
-              NSScreen.screens.contains(where: { $0.frame.intersects(frame) }) else {
-            return presentWindow()
-        }
+        let panel = panel ?? makePanel()
+        self.panel = panel
+        panel.setContentSize(panel.contentView?.fittingSize ?? Self.panelFallbackSize)
+        panel.setFrameOrigin(origin(for: panel.frame.size))
+        // An accessory app cannot raise a window by activating alone.
         NSApp.activate(ignoringOtherApps: true)
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        popover.contentViewController?.view.window?.makeKey()
+        panel.orderFrontRegardless()
+        panel.makeKey()
+        watchForOutsideClicks()
+    }
+
+    private static let panelFallbackSize = NSSize(width: 260, height: 300)
+    private static let menuBarGap = 2.0
+
+    private func makePanel() -> MenuPanel {
+        // An activating panel is what makes dismissal work: the app becomes
+        // active, so losing focus fires `didResignActive`. A non-activating one
+        // never activates and would stay on screen after a click elsewhere.
+        let panel = MenuPanel(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)
+        panel.level = .popUpMenu
+        // Panels hide on deactivate by default, which for an accessory app
+        // means hiding the instant they appear.
+        panel.hidesOnDeactivate = false
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.isMovable = false
+        panel.animationBehavior = .utilityWindow
+        panel.contentView = NSHostingView(rootView: MenuPanelContent())
+        return panel
+    }
+
+    /// Aligns under the status item, clamped on screen. A menu bar crowded
+    /// enough to hide the item parks it offscreen, so fall back to centering.
+    private func origin(for size: NSSize) -> NSPoint {
+        let screen = NSScreen.main ?? NSScreen.screens[0]
+        let visible = screen.visibleFrame
+        guard let button = item.button, let window = button.window,
+              NSScreen.screens.contains(where: { $0.frame.intersects(window.frame) }) else {
+            return NSPoint(x: visible.midX - size.width / 2, y: visible.maxY - size.height)
+        }
+        let anchor = window.convertToScreen(button.convert(button.bounds, to: nil))
+        let x = min(max(anchor.minX, visible.minX + 8), visible.maxX - size.width - 8)
+        return NSPoint(x: x, y: anchor.minY - size.height - Self.menuBarGap)
+    }
+
+    private func watchForOutsideClicks() {
+        guard outsideClickMonitor == nil else { return }
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            MainActor.assumeIsolated { self?.closePanel() }
+        }
     }
 
     func togglePanel() { isPanelVisible ? closePanel() : showPanel() }
@@ -154,25 +195,9 @@ final class StatusItemController: NSObject {
     }
 
     func closePanel() {
-        if popover.isShown { popover.performClose(nil) }
-        fallbackWindow?.orderOut(nil)
-    }
-
-    private func presentWindow() {
-        if fallbackWindow == nil {
-            let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
-            window.title = "Awake"
-            window.isReleasedWhenClosed = false
-            window.contentView = NSHostingView(rootView: ContentView())
-            window.setContentSize(window.contentView?.fittingSize ?? .init(width: 260, height: 260))
-            window.center()
-            fallbackWindow = window
-        }
-        // An accessory app cannot reliably raise a window by activating first.
-        fallbackWindow?.level = .floating
-        fallbackWindow?.orderFrontRegardless()
-        fallbackWindow?.makeKey()
-        NSApp.activate(ignoringOtherApps: true)
+        panel?.orderOut(nil)
+        if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
+        outsideClickMonitor = nil
     }
 
     @objc private func clicked() {

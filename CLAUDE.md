@@ -9,7 +9,12 @@ assertions keeps the developer's machine awake. Lid-closed sleep needs private
 API and is out of scope; say so rather than approximating it.
 
 The menu bar item is AppKit, not `MenuBarExtra`, because a plain click must
-toggle the session and only Option/right-click opens the panel. Both icon states
+toggle the session and only Option/right-click opens the panel. The dropdown is
+a borderless `NSPanel` rather than an `NSPopover`, which would draw a caret at
+the status item. Two settings are load-bearing: `hidesOnDeactivate = false`
+(panels default to true, so for an accessory app it hides the instant it
+appears) and an activating style mask (a `.nonactivatingPanel` never activates
+the app, so `didResignActive` never fires and it stays up after a click away). Both icon states
 are centered in one fixed-size canvas and the item has a fixed length: SF Symbols
 from different families have different glyph bounds and the item visibly shifts
 on every toggle without this.
