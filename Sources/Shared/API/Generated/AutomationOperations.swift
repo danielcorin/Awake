@@ -98,6 +98,41 @@ public enum APIInputs {
         public init() {
         }
     }
+    public struct WakeOff: Codable, Sendable {
+        public init() {
+        }
+    }
+    public struct WakeOn: Codable, Sendable {
+        public var durationMinutes: Int?
+        public var keepDisplayOn: Bool?
+        public var preventDiskIdle: Bool?
+        public var preventSystemSleep: Bool?
+        public init(durationMinutes: Int? = nil, keepDisplayOn: Bool? = nil, preventDiskIdle: Bool? = nil, preventSystemSleep: Bool? = nil) {
+            self.durationMinutes = durationMinutes
+            self.keepDisplayOn = keepDisplayOn
+            self.preventDiskIdle = preventDiskIdle
+            self.preventSystemSleep = preventSystemSleep
+        }
+        enum CodingKeys: String, CodingKey { case durationMinutes, keepDisplayOn, preventDiskIdle, preventSystemSleep }
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            durationMinutes = try c.decodeIfPresent(Int.self, forKey: .durationMinutes)
+            keepDisplayOn = try c.decodeIfPresent(Bool.self, forKey: .keepDisplayOn)
+            preventDiskIdle = try c.decodeIfPresent(Bool.self, forKey: .preventDiskIdle)
+            preventSystemSleep = try c.decodeIfPresent(Bool.self, forKey: .preventSystemSleep)
+        }
+        public func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encodeIfPresent(durationMinutes, forKey: .durationMinutes)
+            try c.encodeIfPresent(keepDisplayOn, forKey: .keepDisplayOn)
+            try c.encodeIfPresent(preventDiskIdle, forKey: .preventDiskIdle)
+            try c.encodeIfPresent(preventSystemSleep, forKey: .preventSystemSleep)
+        }
+    }
+    public struct WakeState: Codable, Sendable {
+        public init() {
+        }
+    }
 }
 
 public protocol LocalAppOperation: AutomationOperation {
@@ -205,6 +240,42 @@ public enum APIOperations {
             return try await application.status(input)
         }
     }
+    public enum WakeOff: LocalAppOperation {
+        public typealias Input = APIInputs.WakeOff
+        public typealias Output = Components.Schemas.WakeState
+        public static let definition: OperationDefinition = .init(id: "wakeOff", command: ["off"], summary: "Stop keeping the Mac awake", method: "DELETE", path: "/v1/wake", fields: [
+
+        ], destructive: false, upload: false, download: false, responseSchema: "#/components/schemas/WakeStateResult", capabilities: ["running-app"])
+        public static func perform(_ input: Input, application: any ApplicationOperations, configuration: any ConfigurationOperations) async throws -> Output {
+            try definition.validate(JSONValue.encode(input))
+            return try await application.wakeOff(input)
+        }
+    }
+    public enum WakeOn: LocalAppOperation {
+        public typealias Input = APIInputs.WakeOn
+        public typealias Output = Components.Schemas.WakeState
+        public static let definition: OperationDefinition = .init(id: "wakeOn", command: ["on"], summary: "Start keeping the Mac awake", method: "POST", path: "/v1/wake", fields: [
+            .init(name: "durationMinutes", location: "body", type: "integer", required: false, nullable: false, option: "--minutes", argument: nil, description: "Session length in minutes, 0 through 1440; zero means indefinite. Omitted uses default-duration-minutes."),
+            .init(name: "keepDisplayOn", location: "body", type: "boolean", required: false, nullable: false, option: "--display", argument: nil, description: ""),
+            .init(name: "preventDiskIdle", location: "body", type: "boolean", required: false, nullable: false, option: "--disk", argument: nil, description: ""),
+            .init(name: "preventSystemSleep", location: "body", type: "boolean", required: false, nullable: false, option: "--system", argument: nil, description: "")
+        ], destructive: false, upload: false, download: false, responseSchema: "#/components/schemas/WakeStateResult", capabilities: ["running-app"])
+        public static func perform(_ input: Input, application: any ApplicationOperations, configuration: any ConfigurationOperations) async throws -> Output {
+            try definition.validate(JSONValue.encode(input))
+            return try await application.wakeOn(input)
+        }
+    }
+    public enum WakeState: LocalAppOperation {
+        public typealias Input = APIInputs.WakeState
+        public typealias Output = Components.Schemas.WakeState
+        public static let definition: OperationDefinition = .init(id: "wakeState", command: ["state"], summary: "Report the current wake session", method: "GET", path: "/v1/wake", fields: [
+
+        ], destructive: false, upload: false, download: false, responseSchema: "#/components/schemas/WakeStateResult", capabilities: ["running-app"])
+        public static func perform(_ input: Input, application: any ApplicationOperations, configuration: any ConfigurationOperations) async throws -> Output {
+            try definition.validate(JSONValue.encode(input))
+            return try await application.wakeState(input)
+        }
+    }
 }
 
 public enum OperationID: String, Codable, CaseIterable, Sendable {
@@ -217,12 +288,18 @@ public enum OperationID: String, Codable, CaseIterable, Sendable {
     case quit
     case show
     case status
+    case wakeOff
+    case wakeOn
+    case wakeState
 }
 
 public protocol ApplicationOperations: Sendable {
     func quit(_ input: APIInputs.Quit) async throws -> Components.Schemas.Message
     func show(_ input: APIInputs.Show) async throws -> Components.Schemas.Message
     func status(_ input: APIInputs.Status) async throws -> Components.Schemas.AppStatus
+    func wakeOff(_ input: APIInputs.WakeOff) async throws -> Components.Schemas.WakeState
+    func wakeOn(_ input: APIInputs.WakeOn) async throws -> Components.Schemas.WakeState
+    func wakeState(_ input: APIInputs.WakeState) async throws -> Components.Schemas.WakeState
 }
 public extension ApplicationOperations {
     func dispatchApplication(_ request: AutomationRequest) async throws -> JSONValue? {
@@ -236,6 +313,15 @@ public extension ApplicationOperations {
         case "status":
             try APIOperations.Status.definition.validate(request.input)
             return try await JSONValue.encode(status(request.input.decode(APIInputs.Status.self)))
+        case "wakeOff":
+            try APIOperations.WakeOff.definition.validate(request.input)
+            return try await JSONValue.encode(wakeOff(request.input.decode(APIInputs.WakeOff.self)))
+        case "wakeOn":
+            try APIOperations.WakeOn.definition.validate(request.input)
+            return try await JSONValue.encode(wakeOn(request.input.decode(APIInputs.WakeOn.self)))
+        case "wakeState":
+            try APIOperations.WakeState.definition.validate(request.input)
+            return try await JSONValue.encode(wakeState(request.input.decode(APIInputs.WakeState.self)))
         default: return nil
         }
     }

@@ -5,6 +5,10 @@ import AwakeCore
 
 @MainActor
 final class AppConfigurationModel: ObservableObject {
+    /// The settings window and the menu bar panel edit the same settings, so
+    /// they share one model rather than racing two writers.
+    static let shared = AppConfigurationModel()
+
     @Published private(set) var configuration: AppConfiguration
     @Published private(set) var configurationError: String?
 
@@ -54,6 +58,15 @@ final class AppConfigurationModel: ObservableObject {
     }
 
     private var pendingWrite: Task<Void, Never>?
+    func setAssertion(_ kind: WakeAssertionKind, enabled: Bool) {
+        switch kind {
+        case .preventSystemSleep: set(.preventSystemSleep, value: String(enabled))
+        case .keepDisplayOn: set(.keepDisplayOn, value: String(enabled))
+        case .preventDiskIdle: set(.preventDiskIdle, value: String(enabled))
+        }
+    }
+    func setDefaultDurationMinutes(_ minutes: Int) { set(.defaultDurationMinutes, value: String(minutes)) }
+    func setActivateAtLaunch(_ enabled: Bool) { set(.activateAtLaunch, value: String(enabled)) }
     func setShowWelcomeMessage(_ enabled: Bool) { set(.showWelcomeMessage, value: String(enabled)) }
     func setAPIHost(_ host: String) { set(.apiHost, value: host) }
     func setAPIPort(_ port: Int) { set(.apiPort, value: String(port)) }

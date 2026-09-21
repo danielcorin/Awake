@@ -2,7 +2,8 @@ import Foundation
 import AutomationRuntime
 
 public actor ConfigurationOperationService: ConfigurationOperations {
-    public let store: AppConfigurationStore
+    /// The store is a Sendable value; the app and CLI both read it directly.
+    public nonisolated let store: AppConfigurationStore
     public init(store: AppConfigurationStore = .init()) { self.store = store }
     private func key(_ value: String) throws -> AppConfigurationKey {
         guard let key = AppConfigurationKey(rawValue: value) else { throw AutomationFailure("invalid_input", "Unknown configuration key '\(value)'. Use config list --all true.") }; return key
@@ -30,6 +31,10 @@ public actor ConfigurationOperationService: ConfigurationOperations {
 public enum MacAutomationErrors {
     public static func normalize(_ error: Error) -> AutomationFailure {
         if error is AppConfigurationError { return .init("invalid_input", error.localizedDescription) }
+        if let wake = error as? WakeSessionError {
+            if case .assertionFailed = wake { return .init("capability_unavailable", wake.localizedDescription) }
+            return .init("invalid_input", wake.localizedDescription)
+        }
         return AutomationFailure.normalize(error)
     }
 }

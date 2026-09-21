@@ -26,6 +26,21 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /v1/app/quit`.
     /// - Remark: Generated from `#/paths//v1/app/quit/post(quit)`.
     func quit(_ input: Operations.quit.Input) async throws -> Operations.quit.Output
+    /// Report the current wake session
+    ///
+    /// - Remark: HTTP `GET /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/get(wakeState)`.
+    func wakeState(_ input: Operations.wakeState.Input) async throws -> Operations.wakeState.Output
+    /// Start keeping the Mac awake
+    ///
+    /// - Remark: HTTP `POST /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/post(wakeOn)`.
+    func wakeOn(_ input: Operations.wakeOn.Input) async throws -> Operations.wakeOn.Output
+    /// Stop keeping the Mac awake
+    ///
+    /// - Remark: HTTP `DELETE /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/delete(wakeOff)`.
+    func wakeOff(_ input: Operations.wakeOff.Input) async throws -> Operations.wakeOff.Output
     /// Config list
     ///
     /// - Remark: HTTP `GET /v1/configuration`.
@@ -80,6 +95,33 @@ extension APIProtocol {
     /// - Remark: Generated from `#/paths//v1/app/quit/post(quit)`.
     public func quit(headers: Operations.quit.Input.Headers = .init()) async throws -> Operations.quit.Output {
         try await quit(Operations.quit.Input(headers: headers))
+    }
+    /// Report the current wake session
+    ///
+    /// - Remark: HTTP `GET /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/get(wakeState)`.
+    public func wakeState(headers: Operations.wakeState.Input.Headers = .init()) async throws -> Operations.wakeState.Output {
+        try await wakeState(Operations.wakeState.Input(headers: headers))
+    }
+    /// Start keeping the Mac awake
+    ///
+    /// - Remark: HTTP `POST /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/post(wakeOn)`.
+    public func wakeOn(
+        headers: Operations.wakeOn.Input.Headers = .init(),
+        body: Operations.wakeOn.Input.Body
+    ) async throws -> Operations.wakeOn.Output {
+        try await wakeOn(Operations.wakeOn.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Stop keeping the Mac awake
+    ///
+    /// - Remark: HTTP `DELETE /v1/wake`.
+    /// - Remark: Generated from `#/paths//v1/wake/delete(wakeOff)`.
+    public func wakeOff(headers: Operations.wakeOff.Input.Headers = .init()) async throws -> Operations.wakeOff.Output {
+        try await wakeOff(Operations.wakeOff.Input(headers: headers))
     }
     /// Config list
     ///

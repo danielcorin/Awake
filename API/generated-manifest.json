@@ -1,7 +1,7 @@
 {
   "inputs": {
     "API/generation.json": "77db1615bc5e4319fbc026f1c71770c9bed4af43dd7a829b7027ab67d29728c2",
-    "API/openapi.yaml": "2d77fff7d0eea11455e6abb638eabef4754edabea89958afb0bd7166ea947da2",
+    "API/openapi.yaml": "f71a7a933f9b91ea2938e6925387802cbd176a6f16cfa8e48ce0639d32d82d09",
     "Configuration/Package.resolved": "a1e5bad3f65098185bf6da5f10596b0b8d343483906817479048151fd9c3ce2b",
     "Packages/AppAutomation/Package.resolved": "ee1c2cbdb6f607ec93d186f59b8fb1b819a9555c73465bd33277d3dea9eb1fba",
     "Packages/AppAutomation/Package.swift": "e8ef454b65c585ed228aad757b173b7e4e7a91f6e20c645d52a65a039770a73f",
@@ -28,18 +28,18 @@
     "scripts/prepare-xcode.sh": "fd7b4ecf81170352c383d9aa42b374561364be1da40794edd7561df499fb27ce"
   },
   "outputs": {
-    "Sources/CLI/Generated/Commands.swift": "384ea87abf3ae4b2d7f2773265e57046231c71ca31f3d2f06b98f9783f1e108d",
-    "Sources/HTTP/Generated/HTTPBridge.swift": "bb6d6a2eb3ea500baa1a7d45b2e68c6d88de789b12f0f9e8c08c91fd28f03a11",
-    "Sources/HTTP/Generated/Server.swift": "b2054416459ba390fde05dbfb92688280c79932d98fae7051acbe6bbf4b6b75f",
-    "Sources/Shared/API/Generated/AutomationCatalog.swift": "b0b536c378c3627396ef0ae1822181727aa4e4627f0a6e29251991543da7fc48",
-    "Sources/Shared/API/Generated/AutomationOperations.swift": "a14d6089644c72ab13dbfdf4047a523de14e634d42e10b5aae8b33b8d55b8613",
+    "Sources/CLI/Generated/Commands.swift": "75fc0e131faa709be1624a3c141b382ad983330b44016cf4580a926ac069a9fe",
+    "Sources/HTTP/Generated/HTTPBridge.swift": "fb9e04ba006737d276b030d326a85194496a8d6fb1357042f23c11b40e9fa630",
+    "Sources/HTTP/Generated/Server.swift": "544987072527cebf7c5f0c2801313aaaebf84d6deb8c35e8a1f1a1ad370b3bb0",
+    "Sources/Shared/API/Generated/AutomationCatalog.swift": "818a67f9ddc701ef3cd670191dd40d4842f18f8feec0f44692d6c821af515e9e",
+    "Sources/Shared/API/Generated/AutomationOperations.swift": "672c31546f4bc47aa2a2bbe052b319e2a01fad6d7db33d9f010f320b709cedf5",
     "Sources/Shared/API/Generated/Types+Components+Headers.swift": "b98a3f97c4cb97176fe979d198d2a3705972f99e4346887f0af4a266c6de8365",
     "Sources/Shared/API/Generated/Types+Components+Parameters.swift": "d595dcdbd4f83d327e4c2ac0afd0c24e1f480a8a51080b3317e3705ecfc805d4",
     "Sources/Shared/API/Generated/Types+Components+RequestBodies.swift": "00a9569f70ba89057fd5fd14b4ecbbad8a34d6941e8bb905c57dc198873116d5",
     "Sources/Shared/API/Generated/Types+Components+Responses.swift": "9398591b37a3141b09b726fcf5612eabf46e641bb56e0da6d7f0a098d307b348",
-    "Sources/Shared/API/Generated/Types+Components+Schemas.swift": "1dabad374c50511132d2c391c2064af461f59e3e60cd3f73bd09141eae80e431",
+    "Sources/Shared/API/Generated/Types+Components+Schemas.swift": "4305e791a2b80a5c16d8814067e3fce50b6b82777cdab837fc6324ed743f5037",
     "Sources/Shared/API/Generated/Types+Components.swift": "a823627f9eccdb71d20853743709c54609c76fe51096cd751aa2493f3f828a38",
-    "Sources/Shared/API/Generated/Types+Operations.swift": "8ce59f4326e204a7eb7f3cfc70fceab5018ed1159a9b49e9ce300c4e2c8f91db",
-    "Sources/Shared/API/Generated/Types.swift": "90e278311e597cde5917058c2300ea809682d966eb1905ed749e60659b095a36"
+    "Sources/Shared/API/Generated/Types+Operations.swift": "2ed4cc1d215674d9c4aa2ec9a049c4f0868780e039b6f7c7074aa6f94fb2643d",
+    "Sources/Shared/API/Generated/Types.swift": "a6a9d82108cbf41172b9564872546605fb68a10f1e31488bb36a294cb14f58cf"
   }
 }

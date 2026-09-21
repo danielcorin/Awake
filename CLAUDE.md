@@ -1,5 +1,13 @@
 # Awake agent guide
 
+Awake keeps the Mac awake by holding IOKit power assertions. `WakeSessionStore`
+owns them and is the only place `IOPMAssertionCreateWithName` is called;
+`WakeOperationService` resolves per-session overrides against the configured
+defaults and implements `wakeOn`/`wakeOff`/`wakeState`. Inject a
+`RecordingPowerAssertionController` in anything automated — a test that holds real
+assertions keeps the developer's machine awake. Lid-closed sleep needs private
+API and is out of scope; say so rather than approximating it.
+
 Use `project.yml` as the only Xcode source of truth and regenerate with
 `mise exec -- xcodegen generate`. Keep domain/persistence and generated API types
 in `Sources/Shared`, Mac-only socket/TOML code in `Sources/Core`, and platform UI

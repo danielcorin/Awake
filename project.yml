@@ -87,7 +87,7 @@ targets:
       base:
         PRODUCT_NAME: Awake
         COMBINE_HIDPI_IMAGES: "YES"
-        INFOPLIST_KEY_LSUIElement: "NO"          # set to YES for a menu-bar/agent app
+        INFOPLIST_KEY_LSUIElement: "YES"         # Awake lives in the menu bar, not the Dock
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
     postBuildScripts:

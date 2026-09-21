@@ -121,6 +121,136 @@
         ]
       }
     },
+    "/v1/wake": {
+      "get": {
+        "operationId": "wakeState",
+        "summary": "Report the current wake session",
+        "x-cli": {
+          "command": [
+            "state"
+          ],
+          "bindings": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WakeStateResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "x-capabilities": [
+          "running-app"
+        ]
+      },
+      "post": {
+        "operationId": "wakeOn",
+        "summary": "Start keeping the Mac awake",
+        "x-cli": {
+          "command": [
+            "on"
+          ],
+          "bindings": {
+            "body.preventSystemSleep": {
+              "option": "--system"
+            },
+            "body.keepDisplayOn": {
+              "option": "--display"
+            },
+            "body.preventDiskIdle": {
+              "option": "--disk"
+            },
+            "body.durationMinutes": {
+              "option": "--minutes"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WakeStateResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WakeOnBody"
+              }
+            }
+          }
+        },
+        "x-capabilities": [
+          "running-app"
+        ]
+      },
+      "delete": {
+        "operationId": "wakeOff",
+        "summary": "Stop keeping the Mac awake",
+        "x-cli": {
+          "command": [
+            "off"
+          ],
+          "bindings": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WakeStateResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "x-capabilities": [
+          "running-app"
+        ]
+      }
+    },
     "/v1/configuration": {
       "get": {
         "operationId": "configList",
@@ -513,10 +643,113 @@
       "AppConfigurationKey": {
         "type": "string",
         "enum": [
+          "prevent-system-sleep",
+          "keep-display-on",
+          "prevent-disk-idle",
+          "default-duration-minutes",
+          "activate-at-launch",
           "show-welcome-message",
           "api-host",
           "api-port"
         ]
+      },
+      "WakeAssertions": {
+        "type": "object",
+        "description": "The three power assertions Awake can hold.",
+        "properties": {
+          "preventSystemSleep": {
+            "type": "boolean",
+            "description": "Hold PreventUserIdleSystemSleep so the Mac does not idle-sleep."
+          },
+          "keepDisplayOn": {
+            "type": "boolean",
+            "description": "Hold PreventUserIdleDisplaySleep so the display stays lit and the screen saver does not start."
+          },
+          "preventDiskIdle": {
+            "type": "boolean",
+            "description": "Hold PreventDiskIdle so disks are not spun down while idle."
+          }
+        },
+        "required": [
+          "preventSystemSleep",
+          "keepDisplayOn",
+          "preventDiskIdle"
+        ],
+        "additionalProperties": false
+      },
+      "WakeState": {
+        "type": "object",
+        "properties": {
+          "active": {
+            "type": "boolean",
+            "description": "Whether Awake currently holds any power assertion."
+          },
+          "assertions": {
+            "$ref": "#/components/schemas/WakeAssertions"
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/WakeAssertions"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "description": "Length of the active session in minutes; zero means indefinite. Absent when inactive."
+          },
+          "startedAt": {
+            "type": "string",
+            "description": "ISO 8601 start time of the active session. Absent when inactive."
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "ISO 8601 expiry of a timed session. Absent when inactive or indefinite."
+          },
+          "remainingSeconds": {
+            "type": "integer",
+            "description": "Seconds left in a timed session. Absent when inactive or indefinite."
+          }
+        },
+        "required": [
+          "active",
+          "assertions",
+          "defaults"
+        ],
+        "additionalProperties": false
+      },
+      "WakeStateResult": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/WakeState"
+          }
+        },
+        "required": [
+          "requestId",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "WakeOnBody": {
+        "type": "object",
+        "description": "Each omitted assertion falls back to its configured default.",
+        "properties": {
+          "preventSystemSleep": {
+            "type": "boolean"
+          },
+          "keepDisplayOn": {
+            "type": "boolean"
+          },
+          "preventDiskIdle": {
+            "type": "boolean"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "description": "Session length in minutes, 0 through 1440; zero means indefinite. Omitted uses default-duration-minutes."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
       },
       "AppConfigurationSource": {
         "type": "string",

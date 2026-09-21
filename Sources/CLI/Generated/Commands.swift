@@ -106,6 +106,44 @@ enum GeneratedCLI {
             try await CLIEnvironment.current.run(APIOperations.Status.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
         }
     }
+    struct WakeOff: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(commandName: "off", abstract: "Stop keeping the Mac awake")
+        @Flag(help: "Emit a structured JSON result.") var json = false
+        @Option(name: .customLong("input-file"), help: "Complete input JSON file; \'-\' reads stdin. Cannot combine with field flags.") var inputFile: String?
+        @Option(help: "Set a nullable field to null. Repeat for multiple fields.") var clear: [String] = []
+        mutating func run() async throws {
+            let values: [String: String] = [:]
+            try await CLIEnvironment.current.run(APIOperations.WakeOff.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
+        }
+    }
+    struct WakeOn: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(commandName: "on", abstract: "Start keeping the Mac awake")
+        @Option(name: .customLong("minutes"), help: "Session length in minutes, 0 through 1440; zero means indefinite. Omitted uses default-duration-minutes.") var value_durationMinutes: String?
+        @Option(name: .customLong("display"), help: "keepDisplayOn (boolean)") var value_keepDisplayOn: String?
+        @Option(name: .customLong("disk"), help: "preventDiskIdle (boolean)") var value_preventDiskIdle: String?
+        @Option(name: .customLong("system"), help: "preventSystemSleep (boolean)") var value_preventSystemSleep: String?
+        @Flag(help: "Emit a structured JSON result.") var json = false
+        @Option(name: .customLong("input-file"), help: "Complete input JSON file; \'-\' reads stdin. Cannot combine with field flags.") var inputFile: String?
+        @Option(help: "Set a nullable field to null. Repeat for multiple fields.") var clear: [String] = []
+        mutating func run() async throws {
+            var values: [String: String] = [:]
+            values["durationMinutes"] = value_durationMinutes
+            values["keepDisplayOn"] = value_keepDisplayOn
+            values["preventDiskIdle"] = value_preventDiskIdle
+            values["preventSystemSleep"] = value_preventSystemSleep
+            try await CLIEnvironment.current.run(APIOperations.WakeOn.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
+        }
+    }
+    struct WakeState: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(commandName: "state", abstract: "Report the current wake session")
+        @Flag(help: "Emit a structured JSON result.") var json = false
+        @Option(name: .customLong("input-file"), help: "Complete input JSON file; \'-\' reads stdin. Cannot combine with field flags.") var inputFile: String?
+        @Option(help: "Set a nullable field to null. Repeat for multiple fields.") var clear: [String] = []
+        mutating func run() async throws {
+            let values: [String: String] = [:]
+            try await CLIEnvironment.current.run(APIOperations.WakeState.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
+        }
+    }
     struct ConfigGroup: AsyncParsableCommand {
         static var configuration: CommandConfiguration { .init(commandName: "config", subcommands: [
             CLIEnvironment.current.command(APIOperations.ConfigGet.self, default: ConfigGet.self),
@@ -120,6 +158,9 @@ enum GeneratedCLI {
         CLIEnvironment.current.command(APIOperations.Quit.self, default: Quit.self),
         CLIEnvironment.current.command(APIOperations.Show.self, default: Show.self),
         CLIEnvironment.current.command(APIOperations.Status.self, default: Status.self),
+        CLIEnvironment.current.command(APIOperations.WakeOff.self, default: WakeOff.self),
+        CLIEnvironment.current.command(APIOperations.WakeOn.self, default: WakeOn.self),
+        CLIEnvironment.current.command(APIOperations.WakeState.self, default: WakeState.self),
         ConfigGroup.self
     ] }
 }

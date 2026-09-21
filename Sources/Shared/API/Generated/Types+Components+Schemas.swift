@@ -238,9 +238,276 @@ extension Components {
         }
         /// - Remark: Generated from `#/components/schemas/AppConfigurationKey`.
         @frozen public enum AppConfigurationKey: String, Codable, Hashable, Sendable, CaseIterable {
+            case prevent_hyphen_system_hyphen_sleep = "prevent-system-sleep"
+            case keep_hyphen_display_hyphen_on = "keep-display-on"
+            case prevent_hyphen_disk_hyphen_idle = "prevent-disk-idle"
+            case default_hyphen_duration_hyphen_minutes = "default-duration-minutes"
+            case activate_hyphen_at_hyphen_launch = "activate-at-launch"
             case show_hyphen_welcome_hyphen_message = "show-welcome-message"
             case api_hyphen_host = "api-host"
             case api_hyphen_port = "api-port"
+        }
+        /// The three power assertions Awake can hold.
+        ///
+        /// - Remark: Generated from `#/components/schemas/WakeAssertions`.
+        public struct WakeAssertions: Codable, Hashable, Sendable {
+            /// Hold PreventUserIdleSystemSleep so the Mac does not idle-sleep.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeAssertions/preventSystemSleep`.
+            public var preventSystemSleep: Swift.Bool
+            /// Hold PreventUserIdleDisplaySleep so the display stays lit and the screen saver does not start.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeAssertions/keepDisplayOn`.
+            public var keepDisplayOn: Swift.Bool
+            /// Hold PreventDiskIdle so disks are not spun down while idle.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeAssertions/preventDiskIdle`.
+            public var preventDiskIdle: Swift.Bool
+            /// Creates a new `WakeAssertions`.
+            ///
+            /// - Parameters:
+            ///   - preventSystemSleep: Hold PreventUserIdleSystemSleep so the Mac does not idle-sleep.
+            ///   - keepDisplayOn: Hold PreventUserIdleDisplaySleep so the display stays lit and the screen saver does not start.
+            ///   - preventDiskIdle: Hold PreventDiskIdle so disks are not spun down while idle.
+            public init(
+                preventSystemSleep: Swift.Bool,
+                keepDisplayOn: Swift.Bool,
+                preventDiskIdle: Swift.Bool
+            ) {
+                self.preventSystemSleep = preventSystemSleep
+                self.keepDisplayOn = keepDisplayOn
+                self.preventDiskIdle = preventDiskIdle
+            }
+            public enum CodingKeys: String, CodingKey {
+                case preventSystemSleep
+                case keepDisplayOn
+                case preventDiskIdle
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.preventSystemSleep = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .preventSystemSleep
+                )
+                self.keepDisplayOn = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .keepDisplayOn
+                )
+                self.preventDiskIdle = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .preventDiskIdle
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "preventSystemSleep",
+                    "keepDisplayOn",
+                    "preventDiskIdle"
+                ])
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/WakeState`.
+        public struct WakeState: Codable, Hashable, Sendable {
+            /// Whether Awake currently holds any power assertion.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeState/active`.
+            public var active: Swift.Bool
+            /// - Remark: Generated from `#/components/schemas/WakeState/assertions`.
+            public var assertions: Components.Schemas.WakeAssertions
+            /// - Remark: Generated from `#/components/schemas/WakeState/defaults`.
+            public var defaults: Components.Schemas.WakeAssertions
+            /// Length of the active session in minutes; zero means indefinite. Absent when inactive.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeState/durationMinutes`.
+            public var durationMinutes: Swift.Int?
+            /// ISO 8601 start time of the active session. Absent when inactive.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeState/startedAt`.
+            public var startedAt: Swift.String?
+            /// ISO 8601 expiry of a timed session. Absent when inactive or indefinite.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeState/expiresAt`.
+            public var expiresAt: Swift.String?
+            /// Seconds left in a timed session. Absent when inactive or indefinite.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeState/remainingSeconds`.
+            public var remainingSeconds: Swift.Int?
+            /// Creates a new `WakeState`.
+            ///
+            /// - Parameters:
+            ///   - active: Whether Awake currently holds any power assertion.
+            ///   - assertions:
+            ///   - defaults:
+            ///   - durationMinutes: Length of the active session in minutes; zero means indefinite. Absent when inactive.
+            ///   - startedAt: ISO 8601 start time of the active session. Absent when inactive.
+            ///   - expiresAt: ISO 8601 expiry of a timed session. Absent when inactive or indefinite.
+            ///   - remainingSeconds: Seconds left in a timed session. Absent when inactive or indefinite.
+            public init(
+                active: Swift.Bool,
+                assertions: Components.Schemas.WakeAssertions,
+                defaults: Components.Schemas.WakeAssertions,
+                durationMinutes: Swift.Int? = nil,
+                startedAt: Swift.String? = nil,
+                expiresAt: Swift.String? = nil,
+                remainingSeconds: Swift.Int? = nil
+            ) {
+                self.active = active
+                self.assertions = assertions
+                self.defaults = defaults
+                self.durationMinutes = durationMinutes
+                self.startedAt = startedAt
+                self.expiresAt = expiresAt
+                self.remainingSeconds = remainingSeconds
+            }
+            public enum CodingKeys: String, CodingKey {
+                case active
+                case assertions
+                case defaults
+                case durationMinutes
+                case startedAt
+                case expiresAt
+                case remainingSeconds
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.active = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .active
+                )
+                self.assertions = try container.decode(
+                    Components.Schemas.WakeAssertions.self,
+                    forKey: .assertions
+                )
+                self.defaults = try container.decode(
+                    Components.Schemas.WakeAssertions.self,
+                    forKey: .defaults
+                )
+                self.durationMinutes = try container.decodeIfPresent(
+                    Swift.Int.self,
+                    forKey: .durationMinutes
+                )
+                self.startedAt = try container.decodeIfPresent(
+                    Swift.String.self,
+                    forKey: .startedAt
+                )
+                self.expiresAt = try container.decodeIfPresent(
+                    Swift.String.self,
+                    forKey: .expiresAt
+                )
+                self.remainingSeconds = try container.decodeIfPresent(
+                    Swift.Int.self,
+                    forKey: .remainingSeconds
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "active",
+                    "assertions",
+                    "defaults",
+                    "durationMinutes",
+                    "startedAt",
+                    "expiresAt",
+                    "remainingSeconds"
+                ])
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/WakeStateResult`.
+        public struct WakeStateResult: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/WakeStateResult/requestId`.
+            public var requestId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/WakeStateResult/data`.
+            public var data: Components.Schemas.WakeState
+            /// Creates a new `WakeStateResult`.
+            ///
+            /// - Parameters:
+            ///   - requestId:
+            ///   - data:
+            public init(
+                requestId: Swift.String,
+                data: Components.Schemas.WakeState
+            ) {
+                self.requestId = requestId
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case requestId
+                case data
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.requestId = try container.decode(
+                    Swift.String.self,
+                    forKey: .requestId
+                )
+                self.data = try container.decode(
+                    Components.Schemas.WakeState.self,
+                    forKey: .data
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "requestId",
+                    "data"
+                ])
+            }
+        }
+        /// Each omitted assertion falls back to its configured default.
+        ///
+        /// - Remark: Generated from `#/components/schemas/WakeOnBody`.
+        public struct WakeOnBody: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/WakeOnBody/preventSystemSleep`.
+            public var preventSystemSleep: Swift.Bool?
+            /// - Remark: Generated from `#/components/schemas/WakeOnBody/keepDisplayOn`.
+            public var keepDisplayOn: Swift.Bool?
+            /// - Remark: Generated from `#/components/schemas/WakeOnBody/preventDiskIdle`.
+            public var preventDiskIdle: Swift.Bool?
+            /// Session length in minutes, 0 through 1440; zero means indefinite. Omitted uses default-duration-minutes.
+            ///
+            /// - Remark: Generated from `#/components/schemas/WakeOnBody/durationMinutes`.
+            public var durationMinutes: Swift.Int?
+            /// Creates a new `WakeOnBody`.
+            ///
+            /// - Parameters:
+            ///   - preventSystemSleep:
+            ///   - keepDisplayOn:
+            ///   - preventDiskIdle:
+            ///   - durationMinutes: Session length in minutes, 0 through 1440; zero means indefinite. Omitted uses default-duration-minutes.
+            public init(
+                preventSystemSleep: Swift.Bool? = nil,
+                keepDisplayOn: Swift.Bool? = nil,
+                preventDiskIdle: Swift.Bool? = nil,
+                durationMinutes: Swift.Int? = nil
+            ) {
+                self.preventSystemSleep = preventSystemSleep
+                self.keepDisplayOn = keepDisplayOn
+                self.preventDiskIdle = preventDiskIdle
+                self.durationMinutes = durationMinutes
+            }
+            public enum CodingKeys: String, CodingKey {
+                case preventSystemSleep
+                case keepDisplayOn
+                case preventDiskIdle
+                case durationMinutes
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.preventSystemSleep = try container.decodeIfPresent(
+                    Swift.Bool.self,
+                    forKey: .preventSystemSleep
+                )
+                self.keepDisplayOn = try container.decodeIfPresent(
+                    Swift.Bool.self,
+                    forKey: .keepDisplayOn
+                )
+                self.preventDiskIdle = try container.decodeIfPresent(
+                    Swift.Bool.self,
+                    forKey: .preventDiskIdle
+                )
+                self.durationMinutes = try container.decodeIfPresent(
+                    Swift.Int.self,
+                    forKey: .durationMinutes
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "preventSystemSleep",
+                    "keepDisplayOn",
+                    "preventDiskIdle",
+                    "durationMinutes"
+                ])
+            }
         }
         /// - Remark: Generated from `#/components/schemas/AppConfigurationSource`.
         @frozen public enum AppConfigurationSource: String, Codable, Hashable, Sendable, CaseIterable {

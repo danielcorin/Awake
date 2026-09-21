@@ -1,12 +1,45 @@
 # Awake
 
-Native macOS app with a bundled Swift CLI and an authenticated HTTP API.
+A menu-bar app that keeps your Mac — and its display — awake, with a bundled
+Swift CLI and an authenticated HTTP API that can do everything the UI can.
 
 ```sh
 mise install
 scripts/generate-api.sh
 scripts/verify.sh
 ```
+
+## What Awake holds
+
+Awake holds the same public IOKit power assertions `caffeinate` uses. Each one is
+a setting, and each can be overridden per session:
+
+| Setting | Assertion | Effect | Default |
+| --- | --- | --- | --- |
+| `prevent-system-sleep` | `PreventUserIdleSystemSleep` | The Mac does not idle-sleep; the display may still dim. | on |
+| `keep-display-on` | `PreventUserIdleDisplaySleep` | The display stays lit and the screen saver never starts. | on |
+| `prevent-disk-idle` | `PreventDiskIdle` | Disks are not spun down while idle. | off |
+| `default-duration-minutes` | — | Session length, 0–1440; `0` runs until stopped. | `0` |
+| `activate-at-launch` | — | Start a session as soon as Awake launches. | off |
+
+**Closing a laptop lid always sleeps the Mac.** That behavior is enforced below
+the assertion layer, and the assertion that defers it (`InternalPreventSleep`) is
+private API, so Awake deliberately does not claim to support it.
+
+A session ends when its timer expires, when you stop it, or when Awake quits —
+macOS releases a process's assertions on exit. `default-duration-minutes` caps at
+1440 so a forgotten timer cannot hold the machine awake indefinitely.
+
+```sh
+awake on                                   # start with the configured defaults
+awake on --display true --minutes 60       # one hour of display-only wakefulness
+awake state --json                         # active, held assertions, seconds left
+awake off
+awake config set keep-display-on --value false
+```
+
+Confirm the real assertions with `pmset -g assertions`, which lists Awake by name
+while a session runs.
 
 `project.yml` is the Xcode source of truth. Copy `Configuration/Local.xcconfig.example`
 to `Configuration/Local.xcconfig` and set signing values for installation or releases.
@@ -18,6 +51,9 @@ provisioned development-signing flow from the CloudKit reference when sync is en
 Choose **Install Command Line Tool** in the app, then add `~/.local/bin` to `PATH`.
 
 ```sh
+awake on --system true --display true --minutes 120 --json
+awake state --json
+awake off --json
 awake status --json
 awake show --json
 awake api operations --json

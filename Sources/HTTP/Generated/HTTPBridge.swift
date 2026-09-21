@@ -145,4 +145,50 @@ struct GeneratedHTTPBridge: APIProtocol {
             return .default(statusCode: failure.httpStatus, .init(body: .json(body)))
         }
     }
+    func wakeOff(_ input: Operations.wakeOff.Input) async throws -> Operations.wakeOff.Output {
+        do {
+            let values: [String: JSONValue] = [:]
+            let payload = JSONValue.object(values)
+            try APIOperations.WakeOff.definition.validate(payload)
+            let result = try await client.call(APIOperations.WakeOff.self, input: payload.decode())
+            let body: Components.Schemas.WakeStateResult = try JSONValue.encode(result).decode()
+            return .ok(.init(body: .json(body)))
+        } catch {
+            let failure = AutomationFailure.normalize(error)
+            let body: Components.Schemas.ErrorResult = try JSONValue.encode(OperationError(requestId: AutomationContext.requestId, error: failure)).decode()
+            return .default(statusCode: failure.httpStatus, .init(body: .json(body)))
+        }
+    }
+    func wakeOn(_ input: Operations.wakeOn.Input) async throws -> Operations.wakeOn.Output {
+        do {
+            var values: [String: JSONValue] = [:]
+            for (key, value) in HTTPRequestContext.body?.object ?? [:] {
+                guard values[key] == nil else { throw AutomationFailure("invalid_input", "A body field duplicates a path/query parameter.") }
+                values[key] = value
+            }
+            let payload = JSONValue.object(values)
+            try APIOperations.WakeOn.definition.validate(payload)
+            let result = try await client.call(APIOperations.WakeOn.self, input: payload.decode())
+            let body: Components.Schemas.WakeStateResult = try JSONValue.encode(result).decode()
+            return .ok(.init(body: .json(body)))
+        } catch {
+            let failure = AutomationFailure.normalize(error)
+            let body: Components.Schemas.ErrorResult = try JSONValue.encode(OperationError(requestId: AutomationContext.requestId, error: failure)).decode()
+            return .default(statusCode: failure.httpStatus, .init(body: .json(body)))
+        }
+    }
+    func wakeState(_ input: Operations.wakeState.Input) async throws -> Operations.wakeState.Output {
+        do {
+            let values: [String: JSONValue] = [:]
+            let payload = JSONValue.object(values)
+            try APIOperations.WakeState.definition.validate(payload)
+            let result = try await client.call(APIOperations.WakeState.self, input: payload.decode())
+            let body: Components.Schemas.WakeStateResult = try JSONValue.encode(result).decode()
+            return .ok(.init(body: .json(body)))
+        } catch {
+            let failure = AutomationFailure.normalize(error)
+            let body: Components.Schemas.ErrorResult = try JSONValue.encode(OperationError(requestId: AutomationContext.requestId, error: failure)).decode()
+            return .default(statusCode: failure.httpStatus, .init(body: .json(body)))
+        }
+    }
 }

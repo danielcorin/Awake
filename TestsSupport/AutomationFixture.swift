@@ -11,7 +11,7 @@ struct AutomationFixture {
         }
         let root = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
         let config = ConfigurationOperationService(store: AppConfigurationStore(fileURL: root.appendingPathComponent("config/awake/config.toml")))
-        let application = FixtureApplication()
+        let application = FixtureApplication(configuration: config.store)
         let transfers = TransferStore(directory: root.appendingPathComponent("Transfers"))
         let suite = CommandLine.arguments.last == "--scenarios" ? try appScenarios(application: application, configuration: config, transfers: transfers) : nil
         let credentials = FixtureCredentials()
@@ -44,6 +44,14 @@ private final class FixtureCredentials: CredentialAuthority, @unchecked Sendable
 
 @MainActor
 private final class FixtureApplication: ApplicationOperations {
+    /// The wake operations run their real logic here; only the IOKit call is
+    /// swapped for a recorder, so a scenario run never keeps this Mac awake.
+    private let wake: WakeOperationService
+
+    init(configuration: AppConfigurationStore) {
+        wake = WakeOperationService(sessions: WakeSessionStore(controller: RecordingPowerAssertionController()),
+                                    configuration: configuration)
+    }
     func status(_ input: APIInputs.Status) async throws -> APIData.AppStatus {
         .init(appName: "Awake fixture", version: "fixture", processIdentifier: Int(ProcessInfo.processInfo.processIdentifier), isFrontmost: false)
     }
@@ -53,4 +61,7 @@ private final class FixtureApplication: ApplicationOperations {
     func quit(_ input: APIInputs.Quit) async throws -> APIData.Message {
         throw AutomationFailure("capability_unavailable", "App termination requires the signed app.")
     }
+    func wakeOn(_ input: APIInputs.WakeOn) async throws -> APIData.WakeState { try await wake.wakeOn(input) }
+    func wakeOff(_ input: APIInputs.WakeOff) async throws -> APIData.WakeState { try await wake.wakeOff(input) }
+    func wakeState(_ input: APIInputs.WakeState) async throws -> APIData.WakeState { try await wake.wakeState(input) }
 }
