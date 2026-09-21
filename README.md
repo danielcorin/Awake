@@ -24,8 +24,12 @@ a setting, and each can be overridden per session:
 
 The UI is the menu bar icon: a sun while a session runs, a moon otherwise.
 **Click it to toggle; Option-click (or right-click) opens the panel** with the
-switch, the three assertion checkboxes, and a duration. `activate-at-launch` and
-the API address/port are CLI-only settings. `awake show` opens the same panel.
+switch, the three assertion checkboxes, a duration, and **About** (icon and
+version). `activate-at-launch` and the API address/port are CLI-only settings.
+`awake show` opens the same panel; `awake status --json` reports the version.
+
+Regenerate the app icon with `swift scripts/generate-app-icon.swift`; it renders
+the Liquid Glass glyph and every legacy PNG from one set of geometry constants.
 
 **Closing a laptop lid always sleeps the Mac.** That behavior is enforced below
 the assertion layer, and the assertion that defers it (`InternalPreventSleep`) is

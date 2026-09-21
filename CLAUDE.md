@@ -14,6 +14,11 @@ are centered in one fixed-size canvas and the item has a fixed length: SF Symbol
 from different families have different glyph bounds and the item visibly shifts
 on every toggle without this.
 
+The app icon is generated: edit the geometry in `scripts/generate-app-icon.swift`
+and re-run it, never the PNGs or SVG. Rays are emitted as explicit capsule paths
+because actool renders SVG arcs with the opposite sweep to CoreGraphics; always
+check the compiled `AppIcon.icns`, not just the legacy PNGs.
+
 Use `project.yml` as the only Xcode source of truth and regenerate with
 `mise exec -- xcodegen generate`. Keep domain/persistence and generated API types
 in `Sources/Shared`, Mac-only socket/TOML code in `Sources/Core`, and platform UI

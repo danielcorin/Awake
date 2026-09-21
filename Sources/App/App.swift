@@ -42,6 +42,8 @@ final class AppRuntime: ApplicationOperations {
         statusItem.showPanel()
         return .init(message: "Awake's menu bar panel is open.")
     }
+    /// Chrome, not a capability: `status` already reports the version.
+    func showAbout() { statusItem.showAbout() }
     func quit(_ input: APIInputs.Quit) async throws -> APIData.Message {
         Task { @MainActor in try? await Task.sleep(for: .milliseconds(200)); NSApp.terminate(nil) }
         return .init(message: "Awake is quitting.")
@@ -130,7 +132,18 @@ final class StatusItemController: NSObject {
 
     func togglePanel() { isPanelVisible ? closePanel() : showPanel() }
 
-    private func closePanel() {
+    /// The standard panel already renders the bundle's icon, name, and version.
+    func showAbout() {
+        closePanel()
+        NSApp.activate(ignoringOtherApps: true)
+        let credits = NSAttributedString(
+            string: "Keeps this Mac awake by holding macOS power assertions.",
+            attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor]
+        )
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
+
+    func closePanel() {
         if popover.isShown { popover.performClose(nil) }
         fallbackWindow?.orderOut(nil)
     }

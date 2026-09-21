@@ -50,6 +50,7 @@ struct ContentView: View {
             Divider()
 
             HStack {
+                Button("About") { AppRuntime.shared.showAbout() }
                 Button(installed ? "CLI installed" : "Install CLI") { installCLI() }
                     .disabled(installed)
                 Spacer()
