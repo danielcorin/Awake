@@ -32,10 +32,12 @@ struct Operation {
 }
 
 let args = Array(CommandLine.arguments.dropFirst())
-guard args.count >= 2 else { fputs("usage: app-interface SPEC OUTPUT_ROOT [CORE_MODULE]\n", stderr); exit(2) }
+guard args.count >= 2 else { fputs("usage: app-interface SPEC OUTPUT_ROOT [CORE_MODULE] [--http]\n", stderr); exit(2) }
 do {
     let specURL = URL(fileURLWithPath: args[0]); let root = URL(fileURLWithPath: args[1], isDirectory: true)
-    let module = args.count > 2 ? args[2] : "TasksCore"
+    let module = args.count > 2 && !args[2].hasPrefix("--") ? args[2] : "TasksCore"
+    // The HTTP bridge is opt-in; a CLI-only app never compiles a server.
+    let emitHTTP = args.contains("--http")
     guard let doc = try Yams.load(yaml: String(contentsOf: specURL, encoding: .utf8)) as? Object else { try fail("OpenAPI must be an object") }
     guard string(doc["openapi"]).hasPrefix("3.1.") else { try fail("Use OpenAPI 3.1") }
     let schemas = object(object(doc["components"])["schemas"])
@@ -214,6 +216,10 @@ do {
     let roots = operations.filter { $0.command.count == 1 }.map { "CLIEnvironment.current.command(APIOperations.\($0.upper).self, default: \($0.upper).self)" } + nested.keys.sorted().map { name($0) + "Group.self" }
     cli += "    static var commands: [ParsableCommand.Type] { [\n" + roots.map { "        " + $0 }.joined(separator: ",\n") + "\n    ] }\n}\n"
     try write("Sources/CLI/Generated/Commands.swift", cli)
+    guard emitHTTP else {
+        print("Generated \(operations.count) operations, typed dispatch, CLI commands, and discovery.")
+        exit(0)
+    }
     var http = "import Foundation\nimport AutomationHTTP\nimport OpenAPIRuntime\nimport \(module)\n\nstruct GeneratedHTTPBridge: APIProtocol {\n    let client: AutomationClient\n    let transfers: TransferStore\n"
     for op in operations {
         http += "    func \(op.id)(_ input: Operations.\(op.id).Input) async throws -> Operations.\(op.id).Output {\n"

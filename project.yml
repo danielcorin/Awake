@@ -119,12 +119,9 @@ targets:
     platform: macOS
     sources:
       - Sources/CLI
-      - Sources/HTTP
     dependencies:
       - package: AppAutomation
         product: AutomationCLI
-      - package: AppAutomation
-        product: AutomationHTTP
       - target: AwakeCore
       - package: AppAutomation
         product: AutomationRuntime

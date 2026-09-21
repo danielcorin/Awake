@@ -2,23 +2,8 @@ import XCTest
 import Foundation
 import AutomationRuntime
 import AutomationCLI
-import AutomationHTTP
-import OpenAPIRuntime
-import HTTPTypes
 
 final class RuntimeTests: XCTestCase {
-    func testQuerySpaceNormalizationPreservesEncodedPlusAndPath() async throws {
-        let definition = OperationDefinition(id: "search", command: ["search"], summary: "Search", method: "GET", path: "/search+path", fields: [
-            .init(name: "query", location: "query", type: "string", required: true, option: "--query")
-        ])
-        let middleware = ContractMiddleware(operations: [definition])
-        let request = HTTPRequest(method: .get, scheme: nil, authority: nil, path: "/search+path?query=C%2B%2B+tasks")
-        _ = try await middleware.intercept(request, body: nil, metadata: .init(), operationID: "search") { request, _, _ in
-            XCTAssertEqual(request.path, "/search+path?query=C%2B%2B%20tasks")
-            return (HTTPResponse(status: .ok), nil)
-        }
-    }
-
     private enum CustomizableOperation: AutomationOperation {
         typealias Input = JSONValue
         typealias Output = String

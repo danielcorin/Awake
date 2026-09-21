@@ -13,9 +13,6 @@ import socket
 import struct
 import subprocess
 import tempfile
-import urllib.error
-import urllib.parse
-import urllib.request
 import uuid
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -54,11 +51,11 @@ def receive(connection, count):
 
 
 reports = {}
-for transport in ('direct', 'cli', 'http'):
+for transport in ('direct', 'cli'):
     with tempfile.TemporaryDirectory(prefix='operation-scenarios-', dir='/tmp') as temporary:
         root = Path(temporary)
         env = {**os.environ, 'TASKS_AUTOMATION_ROOT': str(root), 'APP_AUTOMATION_ROOT': str(root), 'XDG_CONFIG_HOME': str(root/'config')}
-        fixture = server = None
+        fixture = None
         try:
             fixture = subprocess.Popen([str(FIXTURE), str(root), '--scenarios'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
             assert wait_line(fixture).strip() == 'ready'
@@ -87,13 +84,6 @@ for transport in ('direct', 'cli', 'http'):
 
             operations = run_cli(['api', 'operations'])['data']['operations']
             required = {op['id'] for op in operations}
-            token = run_cli(['api', 'token', 'create'])['data']['token']
-            if transport == 'http':
-                server = subprocess.Popen([str(CLI), 'serve', '--port', '0', '--json'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
-                address = json.loads(wait_line(server))['address']
-                request = urllib.request.Request(address+'/operations', headers={'Authorization': 'Bearer '+token})
-                with urllib.request.urlopen(request, timeout=20) as response:
-                    assert json.load(response) == operations, 'HTTP and CLI operation discovery differs'
             while True:
                 scenario = control('$scenarioNext')
                 if scenario.get('done'):
@@ -104,7 +94,7 @@ for transport in ('direct', 'cli', 'http'):
                 assert op in operations, 'Scenario operation differs from generated discovery'
                 if transport == 'direct':
                     result = control('$scenarioDirect')
-                elif transport == 'cli':
+                else:
                     args = list(op['command'])
                     values = dict(values)
                     if op['upload']:
@@ -118,48 +108,14 @@ for transport in ('direct', 'cli', 'http'):
                     result = run_cli(args)
                     if op['download'] and 'error' not in result:
                         result = {'data': {'download': base64.b64encode(output.read_bytes()).decode()}}
-                else:
-                    path, query, body = op['path'], {}, {}
-                    for field in op['fields']:
-                        if field['name'] not in values:
-                            continue
-                        value = values[field['name']]
-                        if field['location'] == 'path':
-                            path = path.replace('{'+field['name']+'}', urllib.parse.quote(str(value), safe=''))
-                        elif field['location'] == 'query':
-                            query[field['name']] = str(value).lower() if isinstance(value, bool) else value
-                        else:
-                            body[field['name']] = value
-                    if query:
-                        path += '?' + urllib.parse.urlencode(query)
-                    headers = {'Authorization': 'Bearer '+token}
-                    if op['upload']:
-                        payload = (root/'Transfers'/values['transfer']).read_bytes()
-                        headers['Content-Type'] = 'application/octet-stream'
-                    elif body or any(f['location'] == 'body' for f in op['fields']):
-                        payload = json.dumps(body).encode(); headers['Content-Type'] = 'application/json'
-                    else:
-                        payload = None
-                    request = urllib.request.Request(address+path, data=payload, headers=headers, method=op['method'])
-                    try:
-                        response = urllib.request.urlopen(request, timeout=20)
-                    except urllib.error.HTTPError as error:
-                        response = error
-                    with response:
-                        data = response.read()
-                        assert response.headers['X-Request-ID'], 'Missing request correlation ID'
-                        if op['download'] and response.status == 200:
-                            result = {'data': {'download': base64.b64encode(data).decode()}}
-                        else:
-                            result = json.loads(data)
                 try:
                     control('$scenarioAssert', result)
                 except AssertionError as error:
                     raise AssertionError(f'{transport}/{op["id"]}: {error}') from error
             print(f'{transport}: {len(required)} operations verified in {scenario["steps"]} executed Swift scenarios')
         finally:
-            stop(server); stop(fixture)
+            stop(fixture)
 output = ROOT/'build/verification/scenarios.json'
 output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text(json.dumps(reports, indent=2, sort_keys=True)+'\n')
-print('PASS: identical Swift scenario assertions across direct service, CLI, and HTTP.')
+print('PASS: identical Swift scenario assertions across direct service and CLI.')

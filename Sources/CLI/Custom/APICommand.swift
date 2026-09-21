@@ -9,7 +9,7 @@ struct ConfigPathCommand: ParsableCommand {
 }
 
 struct APICommand: AsyncParsableCommand {
-    static let configuration = CommandConfiguration(commandName: "api", abstract: "Discover the contract and manage HTTP credentials.", subcommands: [OperationsCommand.self, SchemaCommand.self, TokenCommand.self])
+    static let configuration = CommandConfiguration(commandName: "api", abstract: "Discover the operation contract.", subcommands: [OperationsCommand.self, SchemaCommand.self])
     struct SchemaCommand: ParsableCommand {
         static let configuration = CommandConfiguration(commandName: "schema", abstract: "Emit the bundled OpenAPI contract; works offline.")
         @Flag var json = false
@@ -28,18 +28,5 @@ struct APICommand: AsyncParsableCommand {
             }
             try CLIEnvironment.printJSON(OperationResult(requestId: UUID(), data: JSONValue.object(result)), pretty: !json)
         }
-    }
-    struct TokenCommand: AsyncParsableCommand {
-        static let configuration = CommandConfiguration(commandName: "token", abstract: "Manage the app's Keychain bearer credential. Tokens appear only on explicit create/show/rotate.", subcommands: [Status.self, Create.self, Show.self, Rotate.self, Revoke.self])
-        static func perform(_ action: String, force: Bool = false, json: Bool) async throws {
-            let request = AutomationRequest(operation: "$credential" + action, input: .object(["force": .bool(force)]))
-            let value = try await AwakeClients.endpoint.send(request, launchIfNeeded: AwakeClients.shouldLaunchApp).checked(for: request)
-            try CLIEnvironment.printJSON(OperationResult(requestId: request.requestId, data: value), pretty: !json)
-        }
-        struct Status: AsyncParsableCommand { @Flag var json = false; func run() async throws { try await perform("Status", json: json) } }
-        struct Create: AsyncParsableCommand { @Flag var json = false; func run() async throws { try await perform("Create", json: json) } }
-        struct Show: AsyncParsableCommand { @Flag var json = false; func run() async throws { try await perform("Show", json: json) } }
-        struct Rotate: AsyncParsableCommand { @Flag var json = false; @Flag var force = false; func run() async throws { try await perform("Rotate", force: force, json: json) } }
-        struct Revoke: AsyncParsableCommand { @Flag var json = false; @Flag var force = false; func run() async throws { try await perform("Revoke", force: force, json: json) } }
     }
 }

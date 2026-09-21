@@ -7,7 +7,7 @@ import shutil
 import sys
 
 ROOT = Path(__file__).resolve().parent.parent
-DIRECTORIES = [Path(p) for p in ("Sources/Shared/API/Generated", "Sources/CLI/Generated", "Sources/HTTP/Generated")]
+DIRECTORIES = [Path(p) for p in ("Sources/Shared/API/Generated", "Sources/CLI/Generated")]
 STAMP = ROOT / "API/generated-manifest.json"
 
 

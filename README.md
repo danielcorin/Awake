@@ -1,7 +1,7 @@
 # Awake
 
 A menu-bar app that keeps your Mac — and its display — awake, with a bundled
-Swift CLI and an authenticated HTTP API that can do everything the UI can.
+Swift CLI that can do everything the UI can.
 
 ```sh
 mise install
@@ -65,9 +65,9 @@ to `Configuration/Local.xcconfig` and set signing values for installation or rel
 Use `.agents/skills/try-it/scripts/try-it.sh` to install a local build. Use the
 provisioned development-signing flow from the CloudKit reference when sync is enabled.
 
-## Use the CLI and API
+## Use the CLI
 
-Choose **Install Command Line Tool** in the app, then add `~/.local/bin` to `PATH`.
+Choose **Install CLI** in the panel, then add `~/.local/bin` to `PATH`.
 
 ```sh
 awake on --system true --display true --minutes 120 --json
@@ -79,36 +79,28 @@ awake api operations --json
 awake api schema --json
 awake config list --all true --json
 awake config set keep-display-on --value false --json
-awake api token create --json
-awake serve --port 8080 --json
 ```
 
-The last command runs in the foreground. Read the token from the explicit credential
-command and send it as `Authorization: Bearer <token>`. `GET /health` is the sole
-unauthenticated route. `/ready`, `/openapi.json`, `/operations`, and `/v1/...` require
-a token. Ctrl-C stops the server and leaves the app running. Only `127.0.0.1` and
-`::1` are supported. Port `0` selects a free port and reports it in the ready event.
-Tokens live in the app's Keychain; rotate or revoke using `api token rotate --force`
-and `api token revoke --force`. Token commands are local-only and never prompt for
-Keychain access. An unavailable or locked Keychain produces an actionable error.
-
 Successful operation JSON is `{requestId,data}`. Failures go to stderr as
-`{requestId?,error:{code,message,details?}}`; HTTP uses the corresponding status.
-Exit codes are 0 success, 1 operation failure, 2 invalid invocation, 3 unavailable
-backend or transport. A lost response after dispatch reports `outcome_unknown`;
-inspect state before retrying. The transport never replays a mutation.
+`{requestId?,error:{code,message,details?}}`. Exit codes are 0 success, 1 operation
+failure, 2 invalid invocation, 3 unavailable backend or transport. A lost response
+after dispatch reports `outcome_unknown`; inspect state before retrying. The
+transport never replays a mutation.
 
-The CLI works without the HTTP listener. The running app owns mutable domain data.
-Both interfaces call the same Swift operations through versioned private Unix IPC.
+The running app owns mutable domain data, reached over versioned private Unix IPC.
 Shared validated TOML configuration also works without the app. Its path is reported
 by `config-path`; `$XDG_CONFIG_HOME/awake/config.toml` defaults to
 `~/.config/awake/config.toml`. Never add a second preferences store.
 
-## Keep UI, CLI, and API capabilities consistent
+This app ships **no HTTP server**. `API/openapi.yaml` remains the operation contract
+that generates the CLI, DTOs, and dispatch; set `"http": true` in `API/generation.json`
+to also generate a server.
+
+## Keep UI and CLI capabilities consistent
 
 Follow [Keeping the UI, CLI, and HTTP API consistent](docs/interface-consistency.md)
-when adding a feature. One OpenAPI contract generates CLI/API interfaces and typed
-service requirements; shared Swift services implement behavior. Native UI calls
+when adding a feature. One OpenAPI contract generates the CLI and typed service
+requirements; shared Swift services implement behavior. Native UI calls
 those services and observes the same state, including changes made by automation.
 Presentation and CLI customization stay in ordinary Swift.
 
@@ -148,7 +140,6 @@ updates, JSON arrays for collections, `--file` for uploads, and `--output` for
 binary downloads. Do not combine `--input-file` with individual input fields.
 
 Keep request JSON within 1 MiB, files within 25 MiB, and paginate large collections.
-Uploads use private UUID transfer handles and downloads stream temporary app exports.
 Every meaningful GUI mutation and inspection needs an operation; device actions
 need explicit capability/status behavior. Secrets never belong in TOML or logs.
 

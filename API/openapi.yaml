@@ -4,11 +4,6 @@
     "title": "Awake Automation API",
     "version": "1.0.0"
   },
-  "security": [
-    {
-      "bearerAuth": []
-    }
-  ],
   "paths": {
     "/v1/app/status": {
       "get": {
@@ -548,12 +543,6 @@
     }
   },
   "components": {
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
-      }
-    },
     "schemas": {
       "AppConfigurationValue": {
         "anyOf": [
@@ -648,9 +637,7 @@
           "prevent-disk-idle",
           "default-duration-minutes",
           "activate-at-launch",
-          "toggle-hotkey",
-          "api-host",
-          "api-port"
+          "toggle-hotkey"
         ]
       },
       "WakeAssertions": {

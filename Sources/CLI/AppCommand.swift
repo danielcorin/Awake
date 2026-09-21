@@ -7,7 +7,7 @@ import AwakeCore
 struct AwakeCommand: AsyncParsableCommand {
     static var configuration: CommandConfiguration {
         .init(commandName: "awake", abstract: "Control Awake through its app-owned operation service.",
-              version: "1.0.0", subcommands: GeneratedCLI.commands + [ServeCommand.self, APICommand.self, ConfigPathCommand.self])
+              version: "1.0.0", subcommands: GeneratedCLI.commands + [APICommand.self, ConfigPathCommand.self])
     }
     static func main() async {
         CLIEnvironment.current = CLIEnvironment(client: AwakeClients.local, transfers: AwakeAutomationPaths.transfers)
@@ -43,7 +43,6 @@ enum AwakeClients {
             return try await endpoint.send(request, launchIfNeeded: shouldLaunchApp)
         } catch { throw MacAutomationErrors.normalize(error) }
     }
-    static let server = AutomationClient { request in try await endpoint.send(request, launchIfNeeded: false) }
     static func control(_ operation: String, input: JSONValue = .object([:]), launch: Bool = true) async throws -> JSONValue {
         let request = AutomationRequest(operation: operation, input: input)
         return try await endpoint.send(request, launchIfNeeded: launch).checked(for: request)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the generated CLI and real HTTP listener without user data or Keychain access."""
+"""Exercise the generated CLI against the isolated fixture, without user data."""
 import json
 import os
 from pathlib import Path
@@ -7,8 +7,6 @@ import select
 import signal
 import subprocess
 import tempfile
-import urllib.error
-import urllib.request
 
 root = Path(__file__).resolve().parent.parent
 products = root / "build/Build/Products/Debug"
@@ -33,46 +31,39 @@ def line(process):
 
 with tempfile.TemporaryDirectory(prefix="awake-api-", dir="/tmp") as temporary:
     env = {**os.environ, "APP_AUTOMATION_ROOT": temporary, "XDG_CONFIG_HOME": temporary + "/config"}
-    app = server = None
+    app = None
     try:
         app = subprocess.Popen([str(products / "AwakeAutomationFixture"), temporary], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         assert line(app).strip() == "ready"
+
         def cli(*arguments):
             result = subprocess.run([str(products / "awake"), *arguments, "--json"], env=env, capture_output=True, text=True, timeout=15)
             assert result.returncode == 0, result.stderr
             return json.loads(result.stdout)
+
+        def cli_error(*arguments):
+            result = subprocess.run([str(products / "awake"), *arguments, "--json"], env=env, capture_output=True, text=True, timeout=15)
+            assert result.returncode != 0, "Expected a failure"
+            assert not result.stdout, "Errors must use stderr"
+            return json.loads(result.stderr)
+
         assert cli("status")["data"]["appName"] == "Awake fixture"
         spec = cli("api", "schema")
         expected = {op["operationId"] for item in spec["paths"].values() for op in item.values() if isinstance(op, dict) and "operationId" in op}
         assert {op["id"] for op in cli("api", "operations")["data"]["operations"]} == expected
         human = subprocess.run([str(products / "awake"), "status"], env=env, capture_output=True, text=True, check=True).stdout
         assert "Awake fixture" in human and "pid" in human
-        token = cli("api", "token", "create")["data"]["token"]
-        server = subprocess.Popen([str(products / "awake"), "serve", "--port", "0", "--json"], env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        ready = json.loads(line(server)); assert ready["event"] == "ready"
-        def http(path, token=token, method="GET", body=None, status=200):
-            headers = {"Authorization": "Bearer " + token, "Content-Type": "application/json"} if token else {}
-            request = urllib.request.Request(ready["address"] + path, data=json.dumps(body).encode() if body is not None else None, headers=headers, method=method)
-            try:
-                response = urllib.request.urlopen(request, timeout=10)
-            except urllib.error.HTTPError as error:
-                response = error
-            assert response.status == status
-            return json.loads(response.read())
-        http("/health", token=None)
-        http("/v1/app/status", token=None, status=401)
-        assert http("/openapi.json") == cli("api", "schema")
-        http("/v1/configuration/keep-display-on", method="PUT", body={"value": "false"})
+
+        # The shared configuration store is reachable without the app running.
+        cli("config", "set", "keep-display-on", "--value", "false")
         assert cli("config", "get", "keep-display-on")["data"]["value"] is False
-        cli("config", "set", "keep-display-on", "--value", "true")
-        assert http("/v1/configuration/keep-display-on")["data"]["value"] is True
-        updated = cli("api", "token", "rotate", "--force")["data"]["token"]
-        http("/ready", status=401)
-        http("/ready", token=updated)
-        cli("api", "token", "revoke", "--force")
-        http("/ready", token=updated, status=401)
-        stop(server)
-        assert server.returncode == 0 and app.poll() is None
-        print("Scaffold CLI/HTTP, typed Swift renderer, credentials, shared configuration, and shutdown passed.")
+        cli("config", "unset", "keep-display-on")
+        assert cli("config", "get", "keep-display-on")["data"]["value"] is True
+        assert cli_error("config", "set", "keep-display-on", "--value", "maybe")["error"]["code"] == "invalid_input"
+
+        # No HTTP listener is built, so neither the server nor its credentials exist.
+        assert b"serve" not in subprocess.run([str(products / "awake"), "--help"], env=env, capture_output=True).stdout
+        assert app.poll() is None
+        print("Scaffold CLI, typed Swift renderer, shared configuration, and error contract passed.")
     finally:
-        stop(server); stop(app)
+        stop(app)

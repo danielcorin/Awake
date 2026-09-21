@@ -13,7 +13,7 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
         .init(APIOperations.Show.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.Quit.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.ConfigList.self, input: { .init(all: true) }) { value in
-            try require(value["entries"].elements.count == 8, "All configuration keys")
+            try require(value["entries"].elements.count == 6, "All configuration keys")
         },
         .init(APIOperations.WakeState.self, input: { .init() }) { value in
             try require(value["active"] == .bool(false), "No session before one is started")

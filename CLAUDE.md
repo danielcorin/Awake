@@ -43,12 +43,12 @@ Read [Keeping the UI, CLI, and HTTP API consistent](docs/interface-consistency.m
 when adding capabilities or changing UI/service boundaries. Apply its generic
 feature-authoring loop to this app's domain.
 
-The app owns mutable domain data. Both transports use the same service; the CLI
-never opens a second mutable store. Commands are non-interactive, accept `--json`,
+The app owns mutable domain data. The CLI never opens a second mutable store. Commands are non-interactive, accept `--json`,
 print results to stdout and errors to stderr, and require `--force` for destructive
 actions. Use the shared TOML store for all non-secret runtime settings; no
-`UserDefaults` or `@AppStorage`. The opt-in HTTP server starts with `awake serve`
-and requires app-owned Keychain bearer credentials.
+`UserDefaults` or `@AppStorage`. This app has no HTTP server: `API/generation.json`
+sets `"http": false`, so generation emits the CLI, DTOs, and dispatch only. Set it
+to `true` (and restore the AutomationHTTP target) to add one.
 
 Run `scripts/verify.sh` before handoff; CI executes the same deterministic gate.
 UI persistence writes must use generated operations via Swift services. Add a

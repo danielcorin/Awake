@@ -244,8 +244,6 @@ extension Components {
             case default_hyphen_duration_hyphen_minutes = "default-duration-minutes"
             case activate_hyphen_at_hyphen_launch = "activate-at-launch"
             case toggle_hyphen_hotkey = "toggle-hotkey"
-            case api_hyphen_host = "api-host"
-            case api_hyphen_port = "api-port"
         }
         /// The three power assertions Awake can hold.
         ///

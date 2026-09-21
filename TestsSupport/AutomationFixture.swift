@@ -14,8 +14,7 @@ struct AutomationFixture {
         let application = FixtureApplication(configuration: config.store)
         let transfers = TransferStore(directory: root.appendingPathComponent("Transfers"))
         let suite = CommandLine.arguments.last == "--scenarios" ? try appScenarios(application: application, configuration: config, transfers: transfers) : nil
-        let credentials = FixtureCredentials()
-        let host = AutomationHost(version: "fixture", operations: GeneratedCatalog.operations.map(\.id), credentials: credentials,
+        let host = AutomationHost(version: "fixture", operations: GeneratedCatalog.operations.map(\.id),
                                   normalize: { MacAutomationErrors.normalize($0) }) { request in
             if let value = try await suite?.handle(request) { return value }
             if let value = try await config.dispatchConfiguration(request) { return value }
@@ -29,18 +28,6 @@ struct AutomationFixture {
     }
 }
 
-private final class FixtureCredentials: CredentialAuthority, @unchecked Sendable {
-    private let lock = NSLock()
-    private var token: String?
-    func read() throws -> String? { lock.lock(); defer { lock.unlock() }; return token }
-    func create(replace: Bool) throws -> String {
-        lock.lock(); defer { lock.unlock() }
-        if !replace, let token { return token }
-        let value = UUID().uuidString; token = value; return value
-    }
-    func revoke() throws { lock.lock(); defer { lock.unlock() }; token = nil }
-    func authenticate(_ candidate: String) throws -> Bool { try read() == candidate }
-}
 
 @MainActor
 private final class FixtureApplication: ApplicationOperations {

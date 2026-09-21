@@ -12,10 +12,10 @@ final class CompanionTests: XCTestCase {
         XCTAssertFalse(try store.set(.keepDisplayOn, value: "false").keepDisplayOn)
         XCTAssertEqual(try store.entry(for: .keepDisplayOn).source, .user)
         XCTAssertEqual(try FileManager.default.attributesOfItem(atPath: store.fileURL.path)[.posixPermissions] as? Int, 0o600)
-        XCTAssertEqual(try store.set(.apiPort, value: "0").apiPort, 0)
-        XCTAssertThrowsError(try store.set(.apiHost, value: "0.0.0.0"))
+        XCTAssertEqual(try store.set(.defaultDurationMinutes, value: "30").defaultDurationMinutes, 30)
+        XCTAssertThrowsError(try store.set(.defaultDurationMinutes, value: "-1"))
         XCTAssertThrowsError(try store.validate(content: "unknown = true"))
-        _ = try store.unset(.apiPort)
+        _ = try store.unset(.defaultDurationMinutes)
         _ = try store.unset(.keepDisplayOn)
         XCTAssertFalse(FileManager.default.fileExists(atPath: store.fileURL.path))
     }
