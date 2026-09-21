@@ -648,6 +648,7 @@
           "prevent-disk-idle",
           "default-duration-minutes",
           "activate-at-launch",
+          "toggle-hotkey",
           "api-host",
           "api-port"
         ]

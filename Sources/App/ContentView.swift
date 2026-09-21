@@ -43,7 +43,9 @@ struct ContentView: View {
                 }
             }
 
-            if let message = session.sessionError ?? settings.configurationError {
+            HotkeyField(settings: settings)
+
+            if let message = session.sessionError ?? settings.configurationError ?? AppRuntime.shared.hotkeyError {
                 Text(message).font(.caption).foregroundStyle(.red)
             }
 

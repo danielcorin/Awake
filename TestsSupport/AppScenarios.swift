@@ -13,7 +13,7 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
         .init(APIOperations.Show.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.Quit.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.ConfigList.self, input: { .init(all: true) }) { value in
-            try require(value["entries"].elements.count == 7, "All configuration keys")
+            try require(value["entries"].elements.count == 8, "All configuration keys")
         },
         .init(APIOperations.WakeState.self, input: { .init() }) { value in
             try require(value["active"] == .bool(false), "No session before one is started")
@@ -59,6 +59,7 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
             try require(value["valid"] == .bool(true), "Validate TOML")
         },
         .init(APIOperations.ConfigValidate.self, error: "invalid_input", input: { .init(content: "default-duration-minutes = 5000") }) { _ in },
+        .init(APIOperations.ConfigValidate.self, error: "invalid_input", input: { .init(content: "toggle-hotkey = \"shift+a\"") }) { _ in },
         .init(APIOperations.ConfigReload.self, input: { .init() }) { value in
             try require(value["valid"] == .bool(true), "Reload valid settings")
         },

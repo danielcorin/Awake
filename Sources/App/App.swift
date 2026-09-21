@@ -11,6 +11,9 @@ final class AppRuntime: ApplicationOperations {
     let sessions = WakeSessionStore()
     private lazy var wake = WakeOperationService(sessions: sessions, configuration: configuration.store)
     private lazy var statusItem = StatusItemController()
+    private lazy var hotkey = GlobalHotkeyMonitor { WakeSessionModel.shared.toggle() }
+    /// Set when the configured shortcut could not be registered.
+    private(set) var hotkeyError: String?
     private lazy var host = AutomationHost(
         version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
         operations: GeneratedCatalog.operations.map(\.id),
@@ -26,10 +29,17 @@ final class AppRuntime: ApplicationOperations {
         let server = AutomationSocketServer(path: AwakeAutomationPaths.socket.path) { await AppRuntime.shared.host.handle($0) }
         do { try AwakeAutomationPaths.transfers.cleanExpired(); try server.start(); self.server = server }
         catch { NSLog("Automation startup failed: \(error.localizedDescription)") }
-        if (try? configuration.store.load())?.activateAtLaunch == true {
-            Task { _ = try? await wakeOn(.init()) }
+        // Watch settings from launch, not from the first time the panel opens,
+        // so a shortcut changed with the CLI registers straight away.
+        AppConfigurationModel.shared.start()
+        if let settings = try? configuration.store.load() {
+            applyHotkey(settings)
+            if settings.activateAtLaunch { Task { _ = try? await wakeOn(.init()) } }
         }
     }
+    /// Called after any settings reload, so a shortcut changed from the CLI or
+    /// by editing the TOML file takes effect without a restart.
+    func applyHotkey(_ settings: AppConfiguration) { hotkeyError = hotkey.apply(settings) }
     /// macOS releases a process's power assertions when it exits, so quitting
     /// needs only to close the socket.
     func stop() { server?.stop(); server = nil }

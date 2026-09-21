@@ -19,6 +19,12 @@ and re-run it, never the PNGs or SVG. Rays are emitted as explicit capsule paths
 because actool renders SVG arcs with the opposite sweep to CoreGraphics; always
 check the compiled `AppIcon.icns`, not just the legacy PNGs.
 
+The global shortcut uses Carbon `RegisterEventHotKey` (no Accessibility prompt,
+and it claims the combination) rather than an `NSEvent` global monitor. Parsing
+lives in `HotkeyShortcut` so the TOML store rejects an unusable shortcut before
+it reaches the registrar. Verifying that it fires needs a real key press on an
+unlocked screen: synthesized events and a locked session both fail to dispatch.
+
 Use `project.yml` as the only Xcode source of truth and regenerate with
 `mise exec -- xcodegen generate`. Keep domain/persistence and generated API types
 in `Sources/Shared`, Mac-only socket/TOML code in `Sources/Core`, and platform UI

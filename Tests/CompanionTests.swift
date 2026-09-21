@@ -90,6 +90,36 @@ final class CompanionTests: XCTestCase {
         XCTAssertFalse(idle.active)
     }
 
+    func testHotkeyParsingRoundTripsAndRejectsUnusableShortcuts() throws {
+        let shortcut = try XCTUnwrap(HotkeyShortcut(parsing: "opt+cmd+a"))
+        XCTAssertEqual(shortcut.keyCode, 0)
+        XCTAssertEqual(shortcut.modifiers, [.option, .command])
+        XCTAssertEqual(shortcut.text, "opt+cmd+a", "Canonical text is stable")
+        XCTAssertEqual(shortcut.symbolic, "\u{2325}\u{2318}A")
+
+        // Aliases and ordering normalize onto the same shortcut.
+        XCTAssertEqual(HotkeyShortcut(parsing: "Command+Option+A")?.text, "opt+cmd+a")
+        XCTAssertEqual(HotkeyShortcut(parsing: "ctrl+shift+f5")?.text, "ctrl+shift+f5")
+        XCTAssertEqual(HotkeyShortcut(parsing: "cmd+space")?.text, "cmd+space")
+
+        XCTAssertNil(HotkeyShortcut(parsing: "a"), "A bare key would swallow typing")
+        XCTAssertNil(HotkeyShortcut(parsing: "shift+a"), "Shift alone is not enough")
+        XCTAssertNil(HotkeyShortcut(parsing: "cmd+nope"), "Unknown key name")
+        XCTAssertNil(HotkeyShortcut(parsing: "hyper+a"), "Unknown modifier")
+        XCTAssertNil(HotkeyShortcut(parsing: ""))
+    }
+
+    func testConfigurationRejectsAnUnusableHotkey() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = AppConfigurationStore(fileURL: root.appendingPathComponent("config.toml"))
+        XCTAssertEqual(try store.load().toggleHotkey, "", "No shortcut by default")
+        XCTAssertEqual(try store.set(.toggleHotkey, value: "Cmd+Opt+A").toggleHotkey, "opt+cmd+a")
+        XCTAssertThrowsError(try store.set(.toggleHotkey, value: "shift+a"))
+        XCTAssertThrowsError(try store.validate(content: "toggle-hotkey = \"cmd+nope\""))
+        XCTAssertEqual(try store.set(.toggleHotkey, value: "").toggleHotkey, "", "Empty disables it")
+    }
+
     func testSocketRoundTrip() async throws {
         let root = URL(fileURLWithPath: "/tmp/awake-" + UUID().uuidString)
         let path = root.appendingPathComponent("api.sock").path

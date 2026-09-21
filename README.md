@@ -21,6 +21,7 @@ a setting, and each can be overridden per session:
 | `prevent-disk-idle` | `PreventDiskIdle` | Disks are not spun down while idle. | off |
 | `default-duration-minutes` | — | Session length, 0–1440; `0` runs until stopped. | `0` |
 | `activate-at-launch` | — | Start a session as soon as Awake launches. | off |
+| `toggle-hotkey` | — | System-wide shortcut that toggles a session. Empty disables it. | none |
 
 The UI is the menu bar icon: a sun while a session runs, a moon otherwise.
 **Click it to toggle; Option-click (or right-click) opens the panel** with the
@@ -45,7 +46,14 @@ awake on --display true --minutes 60       # one hour of display-only wakefulnes
 awake state --json                         # active, held assertions, seconds left
 awake off
 awake config set keep-display-on --value false
+awake config set toggle-hotkey --value "opt+cmd+a"   # or record it in the panel
 ```
+
+The shortcut needs at least one of Control, Option, or Command — Shift alone
+would swallow ordinary typing — and is stored canonically, so `Command+Option+A`
+reads back as `opt+cmd+a`. It is registered with `RegisterEventHotKey`, which
+needs no Accessibility permission. macOS does not deliver global shortcuts to
+background apps while the screen is locked.
 
 Confirm the real assertions with `pmset -g assertions`, which lists Awake by name
 while a session runs.

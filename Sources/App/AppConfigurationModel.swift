@@ -66,6 +66,7 @@ final class AppConfigurationModel: ObservableObject {
         }
     }
     func setDefaultDurationMinutes(_ minutes: Int) { set(.defaultDurationMinutes, value: String(minutes)) }
+    func setToggleHotkey(_ shortcut: HotkeyShortcut?) { set(.toggleHotkey, value: shortcut?.text ?? "") }
     private func set(_ key: AppConfigurationKey, value: String) {
         let previous = pendingWrite
         pendingWrite = Task { [weak self] in
@@ -74,6 +75,7 @@ final class AppConfigurationModel: ObservableObject {
             do {
                 _ = try await ConfigurationOperationService(store: store).configSet(.init(key: key.rawValue, value: value))
                 configuration = try store.load()
+                AppRuntime.shared.applyHotkey(configuration)
                 configurationError = nil
             } catch { configurationError = error.localizedDescription }
         }
@@ -82,6 +84,7 @@ final class AppConfigurationModel: ObservableObject {
     func reload() {
         do {
             configuration = try store.load()
+            AppRuntime.shared.applyHotkey(configuration)
             configurationError = nil
         } catch {
             configurationError = error.localizedDescription
