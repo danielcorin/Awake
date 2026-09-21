@@ -59,7 +59,7 @@ final class StatusItemController: NSObject {
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
     private var fallbackWindow: NSWindow?
-    private var observer: NSObjectProtocol?
+    private var observers: [NSObjectProtocol] = []
 
     /// `sun.max.fill` and `moon.zzz` have different glyph bounds (19x18 against
     /// 17x19), so each is centered in one fixed canvas. Without this the button
@@ -94,20 +94,29 @@ final class StatusItemController: NSObject {
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             button.imagePosition = .imageOnly
         }
-        observer = NotificationCenter.default.addObserver(
+        observers.append(NotificationCenter.default.addObserver(
             forName: WakeSessionStore.changeNotification, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
-        }
+        })
+        // Dismiss like a menu: anything that takes focus away closes the panel.
+        // A transient popover only handles clicks inside this app.
+        observers.append(NotificationCenter.default.addObserver(
+            forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.closePanel() }
+        })
         refresh()
     }
 
     deinit {
-        if let observer { NotificationCenter.default.removeObserver(observer) }
+        observers.forEach(NotificationCenter.default.removeObserver)
     }
 
+    var isPanelVisible: Bool { popover.isShown || fallbackWindow?.isVisible == true }
+
     func showPanel() {
-        guard !popover.isShown else { return popover.performClose(nil) }
+        guard !isPanelVisible else { return }
         // A crowded menu bar parks hidden status items offscreen, where an
         // anchored popover would be drawn off the side. Fall back to a window.
         guard let button = item.button, let frame = button.window?.frame,
@@ -117,6 +126,13 @@ final class StatusItemController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         popover.contentViewController?.view.window?.makeKey()
+    }
+
+    func togglePanel() { isPanelVisible ? closePanel() : showPanel() }
+
+    private func closePanel() {
+        if popover.isShown { popover.performClose(nil) }
+        fallbackWindow?.orderOut(nil)
     }
 
     private func presentWindow() {
@@ -139,7 +155,7 @@ final class StatusItemController: NSObject {
     @objc private func clicked() {
         let event = NSApp.currentEvent
         let wantsPanel = event?.modifierFlags.contains(.option) == true || event?.type == .rightMouseUp
-        wantsPanel ? showPanel() : WakeSessionModel.shared.toggle()
+        wantsPanel ? togglePanel() : WakeSessionModel.shared.toggle()
     }
 
     private func refresh() {
