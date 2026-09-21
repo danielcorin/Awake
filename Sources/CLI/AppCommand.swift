@@ -29,7 +29,7 @@ struct AwakeCommand: AsyncParsableCommand {
 }
 
 enum AwakeClients {
-    static let endpoint = AppEndpoint(socketPath: AwakeAutomationPaths.socket.path, appName: "Awake", bundleID: "com.example.Awake")
+    static let endpoint = AppEndpoint(socketPath: AwakeAutomationPaths.socket.path, appName: "Awake", bundleID: "llc.wvlen.Awake")
     static let configuration = ConfigurationOperationService()
     static var shouldLaunchApp: Bool {
         #if DEBUG

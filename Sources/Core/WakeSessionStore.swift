@@ -30,7 +30,7 @@ public struct WakeSessionSnapshot: Equatable, Sendable {
 /// UI, CLI, and HTTP API all reach it through the wake operations.
 @MainActor
 public final class WakeSessionStore: WakeSessionStoreReadAccess {
-    public static let changeNotification = Notification.Name("com.example.Awake.wakeSessionChanged")
+    public static let changeNotification = Notification.Name("llc.wvlen.Awake.wakeSessionChanged")
 
     private let controller: any PowerAssertionController
     private let clock: @Sendable () -> Date

@@ -82,7 +82,7 @@ public enum AppConfigurationError: LocalizedError, Sendable {
     }
 }
 public struct AppConfigurationStore: Sendable, AppConfigurationStoreReadAccess {
-    public static let changeNotification = Notification.Name("com.example.Awake.configurationChanged")
+    public static let changeNotification = Notification.Name("llc.wvlen.Awake.configurationChanged")
     public let fileURL: URL
     public init(fileURL: URL = Self.defaultFileURL()) { self.fileURL = fileURL }
     public static func defaultFileURL(environment: [String: String] = ProcessInfo.processInfo.environment,

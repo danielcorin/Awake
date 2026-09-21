@@ -17,7 +17,7 @@ final class AppRuntime: ApplicationOperations {
     private lazy var host = AutomationHost(
         version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
         operations: GeneratedCatalog.operations.map(\.id),
-        credentials: KeychainCredentialStore(service: "com.example.Awake.http-api"), normalize: { MacAutomationErrors.normalize($0) }
+        credentials: KeychainCredentialStore(service: "llc.wvlen.Awake.http-api"), normalize: { MacAutomationErrors.normalize($0) }
     ) { [weak self] request in
         guard let self else { throw AutomationFailure("unavailable", "The app is shutting down.") }
         if let value = try await self.configuration.dispatchConfiguration(request) { return value }

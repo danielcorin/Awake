@@ -114,7 +114,7 @@ private final class ConfigurationDirectoryWatcher: @unchecked Sendable {
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: descriptor,
             eventMask: [.write, .rename, .delete],
-            queue: DispatchQueue(label: "com.example.Awake.configuration-watcher")
+            queue: DispatchQueue(label: "llc.wvlen.Awake.configuration-watcher")
         )
         source.setEventHandler(handler: onChange)
         source.setCancelHandler { [descriptor] in
