@@ -20,7 +20,7 @@
     "scripts/check-dependencies.py": "93ba8defb7fb2544cbf2cb05ad802349ad5b864ff5d4e48aaa0e4d6d5da38d11",
     "scripts/check-generated.sh": "168d0e53cd3d9f29075b2b1cf6a4c64d82c9aae94a55d0831cb5419675e4810b",
     "scripts/generate-api.sh": "f1aceee6b66f9ced36ddc3107c03c971394fbb59f2c94b779fef02b3e0428e91",
-    "scripts/generated-files.py": "ed54968b7ac97ed840e57b3454fbeae82e4d709de0fcd3742c170a3abbcf32f7",
+    "scripts/generated-files.py": "c260757e7f5d6542657f175d0357306b5ba56bc0f89070b6d82f3525f9baa18a",
     "scripts/prepare-xcode.sh": "fd7b4ecf81170352c383d9aa42b374561364be1da40794edd7561df499fb27ce"
   },
   "outputs": {

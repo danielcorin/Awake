@@ -24,7 +24,7 @@ def inputs():
 
 
 def outputs(root):
-    return hashes(root, [p.relative_to(root) for d in DIRECTORIES for p in (root / d).rglob("*") if p.is_file()])
+    return hashes(root, [p.relative_to(root) for d in DIRECTORIES if (root / d).is_dir() for p in (root / d).rglob("*") if p.is_file()])
 
 
 mode = sys.argv[1]
@@ -38,7 +38,9 @@ else:
     if mode == "--write":
         for directory in DIRECTORIES:
             shutil.rmtree(ROOT / directory, ignore_errors=True)
-            shutil.copytree(generated / directory, ROOT / directory)
+            # A CLI-only app generates no HTTP sources.
+            if (generated / directory).is_dir():
+                shutil.copytree(generated / directory, ROOT / directory)
         STAMP.write_text(json.dumps({"inputs": inputs(), "outputs": outputs(ROOT)}, indent=2, sort_keys=True) + "\n")
     elif mode == "--check":
         if outputs(generated) != outputs(ROOT):
@@ -49,6 +51,6 @@ else:
             sys.exit(1)
         if json.loads(STAMP.read_text()) != {"inputs": inputs(), "outputs": outputs(ROOT)}:
             sys.exit("Generation manifest is stale. Run scripts/generate-api.sh.")
-        print("Generated CLI, HTTP routes, DTOs, dispatch, and catalog are current.")
+        print("Generated CLI, DTOs, dispatch, and catalog are current.")
     else:
         sys.exit("Unknown generation mode")

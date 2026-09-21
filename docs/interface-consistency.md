@@ -30,9 +30,10 @@ flowchart LR
     Reads --> UI
 ```
 
-On macOS, the running app owns mutable domain state. The bundled CLI starts the
-HTTP listener with `serve`; both automation interfaces reach the app through
-private IPC. Validated TOML configuration is the deliberate exception: the UI and
+On macOS, the running app owns mutable domain state. The CLI reaches it through
+private IPC. An HTTP server is optional: when `API/generation.json` sets
+`"http": true`, `serve` starts a listener that reaches the app the same way. A
+CLI-only app has no `serve` command and issues no credentials. Validated TOML configuration is the deliberate exception: the UI and
 CLI can call its common Swift service locally. For a native iPhone companion,
 compile the same domain services into its core and inject the appropriate platform
 adapters. Cross-device persistence synchronization is a separate concern.
