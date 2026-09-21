@@ -7,7 +7,7 @@ import AwakeCore
 struct AwakeCommand: AsyncParsableCommand {
     static var configuration: CommandConfiguration {
         .init(commandName: "awake", abstract: "Control Awake through its app-owned operation service.",
-              version: "1.0.0", subcommands: GeneratedCLI.commands + [APICommand.self, ConfigPathCommand.self])
+              version: "1.1.0", subcommands: GeneratedCLI.commands + [APICommand.self, ConfigPathCommand.self])
     }
     static func main() async {
         CLIEnvironment.current = CLIEnvironment(client: AwakeClients.local, transfers: AwakeAutomationPaths.transfers)

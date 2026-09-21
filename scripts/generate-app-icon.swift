@@ -19,6 +19,7 @@
 //   and a drop shadow, re-rendered per size so small sizes stay crisp.
 // - Sources/App/Assets.xcassets/AppIcon-iOS.appiconset — legacy iOS
 //   full-bleed 1024 for a future iOS target.
+// - docs/icon.png — the README render.
 
 import AppKit
 import UniformTypeIdentifiers
@@ -131,6 +132,8 @@ for pixels in [16, 32, 64, 128, 256, 512, 1024] {
     writePNG(render(pixels: pixels, macStyle: true), to: "\(macSet)/icon_\(pixels).png")
 }
 writePNG(render(pixels: 1024, macStyle: false), to: "\(iosSet)/icon_1024.png")
+// Documentation render; keeps README artwork generated rather than hand-placed.
+writePNG(render(pixels: 512, macStyle: true), to: "\(root)/docs/icon.png")
 
 // Liquid Glass foreground layer for AppIcon.icon, mirroring the geometry
 // above. Rays are emitted as explicit capsule paths rather than rotated rects:
