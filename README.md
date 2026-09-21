@@ -22,6 +22,9 @@ a setting, and each can be overridden per session:
 | `default-duration-minutes` | — | Session length, 0–1440; `0` runs until stopped. | `0` |
 | `activate-at-launch` | — | Start a session as soon as Awake launches. | off |
 
+The UI is one menu-bar panel: a switch, the three assertion checkboxes, and a
+duration. `activate-at-launch` and the API address/port are CLI-only settings.
+
 **Closing a laptop lid always sleeps the Mac.** That behavior is enforced below
 the assertion layer, and the assertion that defers it (`InternalPreventSleep`) is
 private API, so Awake deliberately does not claim to support it.
@@ -59,7 +62,7 @@ awake show --json
 awake api operations --json
 awake api schema --json
 awake config list --all true --json
-awake config set show-welcome-message --value false --json
+awake config set keep-display-on --value false --json
 awake api token create --json
 awake serve --port 8080 --json
 ```

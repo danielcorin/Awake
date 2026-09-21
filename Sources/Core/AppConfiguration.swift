@@ -12,16 +12,15 @@ public struct AppConfiguration: Equatable, Sendable {
     public var preventDiskIdle: Bool
     public var defaultDurationMinutes: Int
     public var activateAtLaunch: Bool
-    public var showWelcomeMessage: Bool
     public var apiHost: String
     public var apiPort: Int
     public init(preventSystemSleep: Bool = true, keepDisplayOn: Bool = true, preventDiskIdle: Bool = false,
                 defaultDurationMinutes: Int = 0, activateAtLaunch: Bool = false,
-                showWelcomeMessage: Bool = true, apiHost: String = "127.0.0.1", apiPort: Int = 8080) {
+                apiHost: String = "127.0.0.1", apiPort: Int = 8080) {
         self.preventSystemSleep = preventSystemSleep; self.keepDisplayOn = keepDisplayOn
         self.preventDiskIdle = preventDiskIdle; self.defaultDurationMinutes = defaultDurationMinutes
         self.activateAtLaunch = activateAtLaunch
-        self.showWelcomeMessage = showWelcomeMessage; self.apiHost = apiHost; self.apiPort = apiPort
+        self.apiHost = apiHost; self.apiPort = apiPort
     }
     /// The assertions a session holds when the caller does not override them.
     public var defaultAssertions: WakeAssertionSet {
@@ -31,7 +30,7 @@ public struct AppConfiguration: Equatable, Sendable {
 public enum AppConfigurationKey: String, CaseIterable, Codable, Sendable {
     case preventSystemSleep = "prevent-system-sleep", keepDisplayOn = "keep-display-on", preventDiskIdle = "prevent-disk-idle",
          defaultDurationMinutes = "default-duration-minutes", activateAtLaunch = "activate-at-launch",
-         showWelcomeMessage = "show-welcome-message", apiHost = "api-host", apiPort = "api-port"
+         apiHost = "api-host", apiPort = "api-port"
     public var valueType: String {
         switch self {
         case .defaultDurationMinutes, .apiPort: "integer"
@@ -46,7 +45,6 @@ public enum AppConfigurationKey: String, CaseIterable, Codable, Sendable {
         case .preventDiskIdle: "Hold PreventDiskIdle by default so disks are not spun down while idle."
         case .defaultDurationMinutes: "Default session length in minutes from 0 through \(maximumWakeDurationMinutes). Zero stays awake until stopped."
         case .activateAtLaunch: "Start a session automatically when Awake launches."
-        case .showWelcomeMessage: "Whether the settings window explains what Awake does."
         case .apiHost: "Loopback API address, 127.0.0.1 or ::1. Restart serve to apply."
         case .apiPort: "API port from 0 through 65535. Zero chooses a free port. Restart serve to apply."
         }
@@ -107,7 +105,7 @@ public struct AppConfigurationStore: Sendable, AppConfigurationStoreReadAccess {
             guard let key = AppConfigurationKey(rawValue: raw) else { throw error("Unknown key '\(raw)'.") }
             switch (key, value) {
             case (.preventSystemSleep, .boolean), (.keepDisplayOn, .boolean), (.preventDiskIdle, .boolean),
-                 (.activateAtLaunch, .boolean), (.showWelcomeMessage, .boolean): break
+                 (.activateAtLaunch, .boolean): break
             case (.defaultDurationMinutes, .integer(let minutes)) where (0...maximumWakeDurationMinutes).contains(minutes): break
             case (.apiHost, .string(let host)) where ["127.0.0.1", "::1"].contains(host): break
             case (.apiPort, .integer(let port)) where (0...65535).contains(port): break
@@ -122,7 +120,6 @@ public struct AppConfigurationStore: Sendable, AppConfigurationStoreReadAccess {
         case .preventDiskIdle: .boolean(config.preventDiskIdle)
         case .defaultDurationMinutes: .integer(config.defaultDurationMinutes)
         case .activateAtLaunch: .boolean(config.activateAtLaunch)
-        case .showWelcomeMessage: .boolean(config.showWelcomeMessage)
         case .apiHost: .string(config.apiHost)
         case .apiPort: .integer(config.apiPort)
         }
@@ -135,7 +132,6 @@ public struct AppConfigurationStore: Sendable, AppConfigurationStoreReadAccess {
         if case .boolean(let v) = values[AppConfigurationKey.preventDiskIdle.rawValue] { configuration.preventDiskIdle = v }
         if case .integer(let v) = values[AppConfigurationKey.defaultDurationMinutes.rawValue] { configuration.defaultDurationMinutes = v }
         if case .boolean(let v) = values[AppConfigurationKey.activateAtLaunch.rawValue] { configuration.activateAtLaunch = v }
-        if case .boolean(let v) = values[AppConfigurationKey.showWelcomeMessage.rawValue] { configuration.showWelcomeMessage = v }
         if case .string(let v) = values[AppConfigurationKey.apiHost.rawValue] { configuration.apiHost = v }
         if case .integer(let v) = values[AppConfigurationKey.apiPort.rawValue] { configuration.apiPort = v }
         return configuration
@@ -158,7 +154,7 @@ public struct AppConfigurationStore: Sendable, AppConfigurationStoreReadAccess {
     @discardableResult func set(_ key: AppConfigurationKey, value text: String) throws -> AppConfiguration {
         let value: AppConfigurationValue
         switch key {
-        case .preventSystemSleep, .keepDisplayOn, .preventDiskIdle, .activateAtLaunch, .showWelcomeMessage:
+        case .preventSystemSleep, .keepDisplayOn, .preventDiskIdle, .activateAtLaunch:
             guard text == "true" || text == "false" else { throw error("Use true or false.") }; value = .boolean(text == "true")
         case .defaultDurationMinutes:
             guard let minutes = Int(text) else { throw error("Use an integer number of minutes.") }; value = .integer(minutes)

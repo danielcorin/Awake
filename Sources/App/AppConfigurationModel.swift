@@ -66,10 +66,6 @@ final class AppConfigurationModel: ObservableObject {
         }
     }
     func setDefaultDurationMinutes(_ minutes: Int) { set(.defaultDurationMinutes, value: String(minutes)) }
-    func setActivateAtLaunch(_ enabled: Bool) { set(.activateAtLaunch, value: String(enabled)) }
-    func setShowWelcomeMessage(_ enabled: Bool) { set(.showWelcomeMessage, value: String(enabled)) }
-    func setAPIHost(_ host: String) { set(.apiHost, value: host) }
-    func setAPIPort(_ port: Int) { set(.apiPort, value: String(port)) }
     private func set(_ key: AppConfigurationKey, value: String) {
         let previous = pendingWrite
         pendingWrite = Task { [weak self] in

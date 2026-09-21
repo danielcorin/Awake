@@ -50,20 +50,20 @@ final class AppRuntime: ApplicationOperations {
     func wakeState(_ input: APIInputs.WakeState) async throws -> APIData.WakeState { try await wake.wakeState(input) }
 }
 
-/// Awake is a menu-bar app, so the settings window is created on demand rather
-/// than by a SwiftUI scene that would open at launch.
+/// There is one view. `show` puts it in a window because the menu bar popover
+/// cannot be opened programmatically.
 @MainActor
 final class SettingsWindowController {
     private var window: NSWindow?
 
     func present() {
         if window == nil {
-            let window = NSWindow(contentRect: .init(x: 0, y: 0, width: 520, height: 560),
-                                  styleMask: [.titled, .closable, .miniaturizable], backing: .buffered, defer: false)
-            window.title = "Awake Settings"
+            let window = NSWindow(contentRect: .zero, styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            window.title = "Awake"
             window.isReleasedWhenClosed = false
-            window.center()
             window.contentView = NSHostingView(rootView: ContentView())
+            window.setContentSize(window.contentView?.fittingSize ?? .init(width: 260, height: 260))
+            window.center()
             self.window = window
         }
         window?.makeKeyAndOrderFront(nil)
@@ -84,7 +84,7 @@ struct AwakeApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            MenuBarView(session: session)
+            ContentView()
         } label: {
             Image(systemName: session.isActive ? "sun.max.fill" : "moon.zzz")
                 .accessibilityLabel(session.isActive ? "Awake is keeping this Mac awake" : "Awake is idle")

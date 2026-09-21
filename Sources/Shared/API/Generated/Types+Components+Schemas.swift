@@ -243,7 +243,6 @@ extension Components {
             case prevent_hyphen_disk_hyphen_idle = "prevent-disk-idle"
             case default_hyphen_duration_hyphen_minutes = "default-duration-minutes"
             case activate_hyphen_at_hyphen_launch = "activate-at-launch"
-            case show_hyphen_welcome_hyphen_message = "show-welcome-message"
             case api_hyphen_host = "api-host"
             case api_hyphen_port = "api-port"
         }

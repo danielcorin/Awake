@@ -13,7 +13,7 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
         .init(APIOperations.Show.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.Quit.self, error: "capability_unavailable", input: { .init() }) { _ in },
         .init(APIOperations.ConfigList.self, input: { .init(all: true) }) { value in
-            try require(value["entries"].elements.count == 8, "All configuration keys")
+            try require(value["entries"].elements.count == 7, "All configuration keys")
         },
         .init(APIOperations.WakeState.self, input: { .init() }) { value in
             try require(value["active"] == .bool(false), "No session before one is started")
@@ -49,11 +49,11 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
             try require(value["remainingSeconds"] == .null, "Countdown cleared")
             try require(value["defaults"]["keepDisplayOn"] == .bool(true), "Defaults survive a stopped session")
         },
-        .init(APIOperations.ConfigSet.self, input: { .init(key: "show-welcome-message", value: "false") }) { value in
-            try require(value["value"] == .bool(false), "Set preference")
+        .init(APIOperations.ConfigSet.self, input: { .init(key: "keep-display-on", value: "false") }) { value in
+            try require(value["value"] == .bool(false), "Turning off a default is persisted")
         },
-        .init(APIOperations.ConfigGet.self, input: { .init(key: "show-welcome-message") }) { value in
-            try require(value["value"] == .bool(false), "Read saved preference")
+        .init(APIOperations.ConfigGet.self, input: { .init(key: "keep-display-on") }) { value in
+            try require(value["value"] == .bool(false), "Saved default is read back")
         },
         .init(APIOperations.ConfigValidate.self, input: { .init(content: "default-duration-minutes = 120") }) { value in
             try require(value["valid"] == .bool(true), "Validate TOML")
@@ -62,8 +62,8 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
         .init(APIOperations.ConfigReload.self, input: { .init() }) { value in
             try require(value["valid"] == .bool(true), "Reload valid settings")
         },
-        .init(APIOperations.ConfigUnset.self, input: { .init(key: "show-welcome-message") }) { value in
-            try require(value["value"] == .bool(true), "Restore preference default")
+        .init(APIOperations.ConfigUnset.self, input: { .init(key: "keep-display-on") }) { value in
+            try require(value["value"] == .bool(true), "Unsetting restores the built-in default")
         },
     ]
     return try ScenarioSuite(steps: steps, application: application, configuration: configuration, transfers: transfers,

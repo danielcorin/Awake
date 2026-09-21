@@ -648,7 +648,6 @@
           "prevent-disk-idle",
           "default-duration-minutes",
           "activate-at-launch",
-          "show-welcome-message",
           "api-host",
           "api-port"
         ]

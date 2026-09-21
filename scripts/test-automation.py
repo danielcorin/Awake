@@ -62,10 +62,10 @@ with tempfile.TemporaryDirectory(prefix="awake-api-", dir="/tmp") as temporary:
         http("/health", token=None)
         http("/v1/app/status", token=None, status=401)
         assert http("/openapi.json") == cli("api", "schema")
-        http("/v1/configuration/show-welcome-message", method="PUT", body={"value": "false"})
-        assert cli("config", "get", "show-welcome-message")["data"]["value"] is False
-        cli("config", "set", "show-welcome-message", "--value", "true")
-        assert http("/v1/configuration/show-welcome-message")["data"]["value"] is True
+        http("/v1/configuration/keep-display-on", method="PUT", body={"value": "false"})
+        assert cli("config", "get", "keep-display-on")["data"]["value"] is False
+        cli("config", "set", "keep-display-on", "--value", "true")
+        assert http("/v1/configuration/keep-display-on")["data"]["value"] is True
         updated = cli("api", "token", "rotate", "--force")["data"]["token"]
         http("/ready", status=401)
         http("/ready", token=updated)

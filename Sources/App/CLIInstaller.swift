@@ -14,6 +14,11 @@ enum CLIInstaller {
             .appendingPathComponent("awake")
     }
 
+    /// True when `~/.local/bin/awake` already points at this bundle's helper.
+    static var isInstalled: Bool {
+        (try? FileManager.default.destinationOfSymbolicLink(atPath: destinationURL.path)) == bundledCLIURL.path
+    }
+
     static func install() throws -> URL {
         let fileManager = FileManager.default
         guard fileManager.isExecutableFile(atPath: bundledCLIURL.path) else {
