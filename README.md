@@ -22,8 +22,10 @@ a setting, and each can be overridden per session:
 | `default-duration-minutes` | — | Session length, 0–1440; `0` runs until stopped. | `0` |
 | `activate-at-launch` | — | Start a session as soon as Awake launches. | off |
 
-The UI is one menu-bar panel: a switch, the three assertion checkboxes, and a
-duration. `activate-at-launch` and the API address/port are CLI-only settings.
+The UI is the menu bar icon: a sun while a session runs, a moon otherwise.
+**Click it to toggle; Option-click (or right-click) opens the panel** with the
+switch, the three assertion checkboxes, and a duration. `activate-at-launch` and
+the API address/port are CLI-only settings. `awake show` opens the same panel.
 
 **Closing a laptop lid always sleeps the Mac.** That behavior is enforced below
 the assertion layer, and the assertion that defers it (`InternalPreventSleep`) is

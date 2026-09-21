@@ -8,6 +8,9 @@ import AwakeCore
 /// updates the menu bar exactly like clicking the switch does.
 @MainActor
 final class WakeSessionModel: ObservableObject {
+    /// The panel and the menu bar click handler drive the same session.
+    static let shared = WakeSessionModel()
+
     @Published private(set) var snapshot: WakeSessionSnapshot = .inactive
     @Published private(set) var remainingSeconds: Int?
     @Published private(set) var sessionError: String?

@@ -8,6 +8,12 @@ defaults and implements `wakeOn`/`wakeOff`/`wakeState`. Inject a
 assertions keeps the developer's machine awake. Lid-closed sleep needs private
 API and is out of scope; say so rather than approximating it.
 
+The menu bar item is AppKit, not `MenuBarExtra`, because a plain click must
+toggle the session and only Option/right-click opens the panel. Both icon states
+are centered in one fixed-size canvas and the item has a fixed length: SF Symbols
+from different families have different glyph bounds and the item visibly shifts
+on every toggle without this.
+
 Use `project.yml` as the only Xcode source of truth and regenerate with
 `mise exec -- xcodegen generate`. Keep domain/persistence and generated API types
 in `Sources/Shared`, Mac-only socket/TOML code in `Sources/Core`, and platform UI

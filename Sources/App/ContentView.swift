@@ -5,7 +5,7 @@ import AwakeCore
 /// Everything else lives in `awake config` and the CLI.
 struct ContentView: View {
     @ObservedObject private var settings = AppConfigurationModel.shared
-    @StateObject private var session = WakeSessionModel()
+    @ObservedObject private var session = WakeSessionModel.shared
 
     private let durations = [0, 15, 30, 60, 120, 240, 480, 1440]
 
