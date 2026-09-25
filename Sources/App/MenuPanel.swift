@@ -2,10 +2,12 @@ import AppKit
 import SwiftUI
 
 /// A borderless window can't become key by default, but the shortcut recorder
-/// needs key events, so allow it explicitly.
+/// needs key events, so allow it explicitly. Escape dismisses it like a menu.
 final class MenuPanel: NSPanel {
+    var onCancel: (() -> Void)?
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+    override func cancelOperation(_ sender: Any?) { onCancel?() }
 }
 
 /// Menu chrome for the panel: the system menu material, rounded the way an

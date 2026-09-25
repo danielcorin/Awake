@@ -13,6 +13,7 @@ final class AppConfigurationModel: ObservableObject {
     @Published private(set) var configurationError: String?
 
     private let store: AppConfigurationStore
+    private let operations: ConfigurationOperationService
     private var directoryWatcher: ConfigurationDirectoryWatcher?
     private var distributedObserver: NSObjectProtocol?
     private var reloadTask: Task<Void, Never>?
@@ -20,6 +21,7 @@ final class AppConfigurationModel: ObservableObject {
 
     init(store: AppConfigurationStore = AppConfigurationStore()) {
         self.store = store
+        operations = ConfigurationOperationService(store: store)
         do {
             configuration = try store.load()
             configurationError = nil
@@ -73,7 +75,7 @@ final class AppConfigurationModel: ObservableObject {
             await previous?.value
             guard let self else { return }
             do {
-                _ = try await ConfigurationOperationService(store: store).configSet(.init(key: key.rawValue, value: value))
+                _ = try await operations.configSet(.init(key: key.rawValue, value: value))
                 configuration = try store.load()
                 AppRuntime.shared.applyHotkey(configuration)
                 configurationError = nil

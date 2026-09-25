@@ -6,15 +6,24 @@ import AwakeCore
 struct ContentView: View {
     @ObservedObject private var settings = AppConfigurationModel.shared
     @ObservedObject private var session = WakeSessionModel.shared
+    @State private var installed = CLIInstaller.isInstalled
+    @State private var installError: String?
 
-    private let durations = [0, 15, 30, 60, 120, 240, 480, 1440]
+    private static let presetDurations = [0, 15, 30, 60, 120, 240, 480, 1440]
+
+    /// The presets plus whatever `awake config set default-duration-minutes`
+    /// chose, so the picker never shows a blank selection.
+    private var durations: [Int] {
+        let configured = settings.configuration.defaultDurationMinutes
+        return Self.presetDurations.contains(configured) ? Self.presetDurations : (Self.presetDurations + [configured]).sorted()
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             Toggle(isOn: Binding(get: { session.isActive }, set: { _ in session.toggle() })) {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Keep this Mac awake")
-                    Text(session.summary).font(.caption).foregroundStyle(.secondary)
+                    summary.font(.caption).foregroundStyle(.secondary).monospacedDigit()
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -32,6 +41,7 @@ struct ContentView: View {
                         session.applyDefaultsToActiveSession(updated)
                     }
                 ))
+                .help(kind.detail)
             }
 
             Picker("For", selection: Binding(
@@ -45,8 +55,8 @@ struct ContentView: View {
 
             HotkeyField(settings: settings)
 
-            if let message = session.sessionError ?? settings.configurationError ?? AppRuntime.shared.hotkeyError {
-                Text(message).font(.caption).foregroundStyle(.red)
+            if let message = session.sessionError ?? settings.configurationError ?? AppRuntime.shared.hotkeyError ?? installError {
+                Text(message).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
             }
 
             Divider()
@@ -55,6 +65,7 @@ struct ContentView: View {
                 Button("About") { AppRuntime.shared.showAbout() }
                 Button(installed ? "CLI installed" : "Install CLI") { installCLI() }
                     .disabled(installed)
+                    .help(installed ? CLIInstaller.destinationURL.path : "Link the awake command into ~/.local/bin")
                 Spacer()
                 Button("Quit") { NSApp.terminate(nil) }
             }
@@ -66,10 +77,26 @@ struct ContentView: View {
         .onAppear { settings.start() }
     }
 
-    @State private var installed = CLIInstaller.isInstalled
+    /// Only a timed session needs a clock, and `TimelineView` stops ticking
+    /// while the panel is off screen.
+    @ViewBuilder private var summary: some View {
+        if session.snapshot.expiresAt != nil {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                Text(session.summary(at: context.date))
+            }
+        } else {
+            Text(session.summary(at: .now))
+        }
+    }
 
     private func installCLI() {
-        installed = (try? CLIInstaller.install()) != nil
+        do {
+            _ = try CLIInstaller.install()
+            installed = true
+            installError = nil
+        } catch {
+            installError = error.localizedDescription
+        }
     }
 }
 

@@ -14,8 +14,9 @@ final class AppRuntime: ApplicationOperations {
     private lazy var hotkey = GlobalHotkeyMonitor { WakeSessionModel.shared.toggle() }
     /// Set when the configured shortcut could not be registered.
     private(set) var hotkeyError: String?
+    private static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown"
     private lazy var host = AutomationHost(
-        version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+        version: Self.version,
         operations: GeneratedCatalog.operations.map(\.id),
         normalize: { MacAutomationErrors.normalize($0) }
     ) { [weak self] request in
@@ -44,7 +45,7 @@ final class AppRuntime: ApplicationOperations {
     /// needs only to close the socket.
     func stop() { server?.stop(); server = nil }
     func status(_ input: APIInputs.Status) async throws -> APIData.AppStatus {
-        .init(appName: "Awake", version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "unknown",
+        .init(appName: "Awake", version: Self.version,
               processIdentifier: Int(ProcessInfo.processInfo.processIdentifier), isFrontmost: NSApp.isActive)
     }
     func show(_ input: APIInputs.Show) async throws -> APIData.Message {
@@ -79,6 +80,11 @@ final class StatusItemController: NSObject {
     private static let iconWidth = 24.0
     private static let iconCanvas = NSSize(width: 20, height: 20)
     private static let iconConfiguration = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+
+    private static let activeLabel = "Awake is keeping this Mac awake"
+    private static let idleLabel = "Awake is idle"
+    private static let activeIcon = icon("sun.max.fill", label: activeLabel)
+    private static let idleIcon = icon("moon.zzz", label: idleLabel)
 
     private static func icon(_ symbolName: String, label: String) -> NSImage? {
         guard let symbol = NSImage(systemSymbolName: symbolName, accessibilityDescription: label)?
@@ -157,6 +163,7 @@ final class StatusItemController: NSObject {
         panel.isMovable = false
         panel.animationBehavior = .utilityWindow
         panel.contentView = NSHostingView(rootView: MenuPanelContent())
+        panel.onCancel = { [weak self] in self?.closePanel() }
         return panel
     }
 
@@ -181,8 +188,6 @@ final class StatusItemController: NSObject {
         }
     }
 
-    func togglePanel() { isPanelVisible ? closePanel() : showPanel() }
-
     /// The standard panel already renders the bundle's icon, name, and version.
     func showAbout() {
         closePanel()
@@ -200,17 +205,24 @@ final class StatusItemController: NSObject {
         outsideClickMonitor = nil
     }
 
+    /// Like a menu title, any click on the item while the panel is open just
+    /// closes it. Control-click counts as a right-click, as it does everywhere.
     @objc private func clicked() {
+        guard !isPanelVisible else { return closePanel() }
         let event = NSApp.currentEvent
-        let wantsPanel = event?.modifierFlags.contains(.option) == true || event?.type == .rightMouseUp
-        wantsPanel ? togglePanel() : WakeSessionModel.shared.toggle()
+        let wantsPanel = event?.type == .rightMouseUp || event?.modifierFlags.contains(.option) == true
+            || event?.modifierFlags.contains(.control) == true
+        wantsPanel ? showPanel() : WakeSessionModel.shared.toggle()
     }
+
+    private var shownActive: Bool?
 
     private func refresh() {
         let active = AppRuntime.shared.sessions.snapshot.active
-        let label = active ? "Awake is keeping this Mac awake" : "Awake is idle"
-        item.button?.image = Self.icon(active ? "sun.max.fill" : "moon.zzz", label: label)
-        item.button?.toolTip = "\(label). Click to toggle, Option-click for options."
+        guard active != shownActive else { return }
+        shownActive = active
+        item.button?.image = active ? Self.activeIcon : Self.idleIcon
+        item.button?.toolTip = "\(active ? Self.activeLabel : Self.idleLabel). Click to toggle, Option-click for options."
     }
 }
 
