@@ -49,6 +49,24 @@ func appScenarios(application: any ApplicationOperations, configuration: Configu
             try require(value["remainingSeconds"] == .null, "Countdown cleared")
             try require(value["defaults"]["keepDisplayOn"] == .bool(true), "Defaults survive a stopped session")
         },
+        .init(APIOperations.LoginItemState.self, input: { .init() }) { value in
+            try require(value["enabled"] == .bool(false), "Awake does not add itself to login items")
+            try require(value["status"] == .string("disabled"), "Unregistered status")
+        },
+        .init(APIOperations.LoginItemSet.self, input: { .init(enabled: true) }) { value in
+            try require(value["enabled"] == .bool(true), "Opening at login turned on")
+            try require(value["status"] == .string("enabled"), "Registered status")
+        },
+        .init(APIOperations.LoginItemState.self, input: { .init() }) { value in
+            try require(value["enabled"] == .bool(true), "The registration is read back")
+        },
+        .init(APIOperations.LoginItemSet.self, input: { .init(enabled: true) }) { value in
+            try require(value["enabled"] == .bool(true), "Enabling twice is harmless")
+        },
+        .init(APIOperations.LoginItemSet.self, input: { .init(enabled: false) }) { value in
+            try require(value["enabled"] == .bool(false), "Opening at login turned off")
+            try require(value["status"] == .string("disabled"), "Unregistered again")
+        },
         .init(APIOperations.ConfigSet.self, input: { .init(key: "keep-display-on", value: "false") }) { value in
             try require(value["value"] == .bool(false), "Turning off a default is persisted")
         },

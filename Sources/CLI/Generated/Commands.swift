@@ -76,6 +76,28 @@ enum GeneratedCLI {
             try await CLIEnvironment.current.run(APIOperations.ConfigValidate.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
         }
     }
+    struct LoginItemSet: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(commandName: "set", abstract: "Turn opening at login on or off")
+        @Option(name: .customLong("enabled"), help: "enabled (boolean); required") var value_enabled: String?
+        @Flag(help: "Emit a structured JSON result.") var json = false
+        @Option(name: .customLong("input-file"), help: "Complete input JSON file; \'-\' reads stdin. Cannot combine with field flags.") var inputFile: String?
+        @Option(help: "Set a nullable field to null. Repeat for multiple fields.") var clear: [String] = []
+        mutating func run() async throws {
+            var values: [String: String] = [:]
+            values["enabled"] = value_enabled
+            try await CLIEnvironment.current.run(APIOperations.LoginItemSet.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
+        }
+    }
+    struct LoginItemState: AsyncParsableCommand {
+        static let configuration = CommandConfiguration(commandName: "status", abstract: "Report whether Awake opens at login")
+        @Flag(help: "Emit a structured JSON result.") var json = false
+        @Option(name: .customLong("input-file"), help: "Complete input JSON file; \'-\' reads stdin. Cannot combine with field flags.") var inputFile: String?
+        @Option(help: "Set a nullable field to null. Repeat for multiple fields.") var clear: [String] = []
+        mutating func run() async throws {
+            let values: [String: String] = [:]
+            try await CLIEnvironment.current.run(APIOperations.LoginItemState.self, values: values, clear: clear, inputFile: inputFile, json: json, uploadFile: nil, outputFile: nil, overwrite: false)
+        }
+    }
     struct Quit: AsyncParsableCommand {
         static let configuration = CommandConfiguration(commandName: "quit", abstract: "Quit")
         @Flag(help: "Emit a structured JSON result.") var json = false
@@ -154,6 +176,12 @@ enum GeneratedCLI {
             CLIEnvironment.current.command(APIOperations.ConfigValidate.self, default: ConfigValidate.self)
         ]) }
     }
+    struct LoginItemGroup: AsyncParsableCommand {
+        static var configuration: CommandConfiguration { .init(commandName: "login-item", subcommands: [
+            CLIEnvironment.current.command(APIOperations.LoginItemSet.self, default: LoginItemSet.self),
+            CLIEnvironment.current.command(APIOperations.LoginItemState.self, default: LoginItemState.self)
+        ]) }
+    }
     static var commands: [ParsableCommand.Type] { [
         CLIEnvironment.current.command(APIOperations.Quit.self, default: Quit.self),
         CLIEnvironment.current.command(APIOperations.Show.self, default: Show.self),
@@ -161,6 +189,7 @@ enum GeneratedCLI {
         CLIEnvironment.current.command(APIOperations.WakeOff.self, default: WakeOff.self),
         CLIEnvironment.current.command(APIOperations.WakeOn.self, default: WakeOn.self),
         CLIEnvironment.current.command(APIOperations.WakeState.self, default: WakeState.self),
-        ConfigGroup.self
+        ConfigGroup.self,
+        LoginItemGroup.self
     ] }
 }

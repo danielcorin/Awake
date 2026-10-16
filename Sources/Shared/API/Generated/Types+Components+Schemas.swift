@@ -1002,5 +1002,120 @@ extension Components {
                 ])
             }
         }
+        /// macOS owns this registration, so it also reflects changes made in System Settings > General > Login Items.
+        ///
+        /// - Remark: Generated from `#/components/schemas/LoginItemState`.
+        public struct LoginItemState: Codable, Hashable, Sendable {
+            /// Whether macOS will open Awake at login.
+            ///
+            /// - Remark: Generated from `#/components/schemas/LoginItemState/enabled`.
+            public var enabled: Swift.Bool
+            /// requires-approval means Awake is registered but switched off in System Settings > General > Login Items.
+            ///
+            /// - Remark: Generated from `#/components/schemas/LoginItemState/status`.
+            @frozen public enum statusPayload: String, Codable, Hashable, Sendable, CaseIterable {
+                case enabled = "enabled"
+                case disabled = "disabled"
+                case requires_hyphen_approval = "requires-approval"
+            }
+            /// requires-approval means Awake is registered but switched off in System Settings > General > Login Items.
+            ///
+            /// - Remark: Generated from `#/components/schemas/LoginItemState/status`.
+            public var status: Components.Schemas.LoginItemState.statusPayload
+            /// Creates a new `LoginItemState`.
+            ///
+            /// - Parameters:
+            ///   - enabled: Whether macOS will open Awake at login.
+            ///   - status: requires-approval means Awake is registered but switched off in System Settings > General > Login Items.
+            public init(
+                enabled: Swift.Bool,
+                status: Components.Schemas.LoginItemState.statusPayload
+            ) {
+                self.enabled = enabled
+                self.status = status
+            }
+            public enum CodingKeys: String, CodingKey {
+                case enabled
+                case status
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.enabled = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .enabled
+                )
+                self.status = try container.decode(
+                    Components.Schemas.LoginItemState.statusPayload.self,
+                    forKey: .status
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "enabled",
+                    "status"
+                ])
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/LoginItemStateResult`.
+        public struct LoginItemStateResult: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/LoginItemStateResult/requestId`.
+            public var requestId: Swift.String
+            /// - Remark: Generated from `#/components/schemas/LoginItemStateResult/data`.
+            public var data: Components.Schemas.LoginItemState
+            /// Creates a new `LoginItemStateResult`.
+            ///
+            /// - Parameters:
+            ///   - requestId:
+            ///   - data:
+            public init(
+                requestId: Swift.String,
+                data: Components.Schemas.LoginItemState
+            ) {
+                self.requestId = requestId
+                self.data = data
+            }
+            public enum CodingKeys: String, CodingKey {
+                case requestId
+                case data
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.requestId = try container.decode(
+                    Swift.String.self,
+                    forKey: .requestId
+                )
+                self.data = try container.decode(
+                    Components.Schemas.LoginItemState.self,
+                    forKey: .data
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "requestId",
+                    "data"
+                ])
+            }
+        }
+        /// - Remark: Generated from `#/components/schemas/LoginItemSetBody`.
+        public struct LoginItemSetBody: Codable, Hashable, Sendable {
+            /// - Remark: Generated from `#/components/schemas/LoginItemSetBody/enabled`.
+            public var enabled: Swift.Bool
+            /// Creates a new `LoginItemSetBody`.
+            ///
+            /// - Parameters:
+            ///   - enabled:
+            public init(enabled: Swift.Bool) {
+                self.enabled = enabled
+            }
+            public enum CodingKeys: String, CodingKey {
+                case enabled
+            }
+            public init(from decoder: any Swift.Decoder) throws {
+                let container = try decoder.container(keyedBy: CodingKeys.self)
+                self.enabled = try container.decode(
+                    Swift.Bool.self,
+                    forKey: .enabled
+                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: [
+                    "enabled"
+                ])
+            }
+        }
     }
 }

@@ -16,6 +16,7 @@ with an `awake` command-line tool that can do everything the UI does.
 - Timed sessions from 15 minutes to 24 hours (any length up to 24 hours from the
   CLI), or until you stop them.
 - An optional system-wide shortcut toggles a session without Accessibility permission.
+- An "Open at login" switch, backed by macOS Login Items rather than a setting of its own.
 - A bundled `awake` CLI with JSON output for scripts and agents.
 - Plain-text settings in `~/.config/awake/config.toml`.
 - No network access, analytics, or special permissions.
@@ -41,7 +42,10 @@ a setting, and each can be overridden per session:
 | `toggle-hotkey` | — | System-wide shortcut that toggles a session. Empty disables it. | none |
 
 `activate-at-launch` is a CLI-only setting. `awake show` opens the panel;
-`awake status --json` reports the version.
+`awake status --json` reports the version. Opening at login is not in the TOML
+file because macOS owns it; use the panel switch, System Settings > General >
+Login Items, or `awake login-item set --enabled true`. Pair it with
+`activate-at-launch` to start a session at every login.
 
 **Closing a laptop lid always sleeps the Mac.** That behavior is enforced below
 the assertion layer, and the assertion that defers it (`InternalPreventSleep`) is
@@ -58,6 +62,7 @@ awake state --json                         # active, held assertions, seconds le
 awake off
 awake config set keep-display-on --value false
 awake config set toggle-hotkey --value "opt+cmd+a"   # or record it in the panel
+awake login-item set --enabled true        # open Awake at login
 ```
 
 The shortcut needs at least one of Control, Option, or Command — Shift alone

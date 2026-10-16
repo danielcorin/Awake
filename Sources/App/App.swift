@@ -10,6 +10,8 @@ final class AppRuntime: ApplicationOperations {
     private let configuration = ConfigurationOperationService()
     let sessions = WakeSessionStore()
     private lazy var wake = WakeOperationService(sessions: sessions, configuration: configuration.store)
+    let loginItems = LoginItemStore()
+    private lazy var loginItem = LoginItemOperationService(store: loginItems)
     private lazy var statusItem = StatusItemController()
     private lazy var hotkey = GlobalHotkeyMonitor { WakeSessionModel.shared.toggle() }
     /// Set when the configured shortcut could not be registered.
@@ -62,6 +64,8 @@ final class AppRuntime: ApplicationOperations {
     func wakeOn(_ input: APIInputs.WakeOn) async throws -> APIData.WakeState { try await wake.wakeOn(input) }
     func wakeOff(_ input: APIInputs.WakeOff) async throws -> APIData.WakeState { try await wake.wakeOff(input) }
     func wakeState(_ input: APIInputs.WakeState) async throws -> APIData.WakeState { try await wake.wakeState(input) }
+    func loginItemState(_ input: APIInputs.LoginItemState) async throws -> APIData.LoginItemState { try await loginItem.loginItemState(input) }
+    func loginItemSet(_ input: APIInputs.LoginItemSet) async throws -> APIData.LoginItemState { try await loginItem.loginItemSet(input) }
 }
 
 /// The menu bar item. `MenuBarExtra` always opens its content on click, so the
@@ -134,6 +138,8 @@ final class StatusItemController: NSObject {
     /// An `NSPopover` would draw its caret pointing at the item.
     func showPanel() {
         guard !isPanelVisible else { return }
+        // The login item can change in System Settings without telling us.
+        LoginItemModel.shared.refresh()
         let panel = panel ?? makePanel()
         self.panel = panel
         panel.setContentSize(panel.contentView?.fittingSize ?? Self.panelFallbackSize)

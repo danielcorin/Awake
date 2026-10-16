@@ -6,6 +6,7 @@ import AwakeCore
 struct ContentView: View {
     @ObservedObject private var settings = AppConfigurationModel.shared
     @ObservedObject private var session = WakeSessionModel.shared
+    @ObservedObject private var loginItem = LoginItemModel.shared
     @State private var installed = CLIInstaller.isInstalled
     @State private var installError: String?
 
@@ -55,7 +56,16 @@ struct ContentView: View {
 
             HotkeyField(settings: settings)
 
-            if let message = session.sessionError ?? settings.configurationError ?? AppRuntime.shared.hotkeyError ?? installError {
+            Toggle("Open at login", isOn: Binding(get: { loginItem.isEnabled }, set: { loginItem.setEnabled($0) }))
+
+            if loginItem.status == .requiresApproval {
+                Button("Allow in Login Items settings") { loginItem.openSystemSettings() }
+                    .buttonStyle(.link)
+                    .font(.caption)
+            }
+
+            if let message = session.sessionError ?? settings.configurationError ?? AppRuntime.shared.hotkeyError
+                ?? loginItem.loginItemError ?? installError {
                 Text(message).font(.caption).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
             }
 

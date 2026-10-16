@@ -90,6 +90,26 @@ final class CompanionTests: XCTestCase {
         XCTAssertFalse(idle.active)
     }
 
+    @MainActor
+    func testLoginItemReportsAndRejectsAPendingApproval() async throws {
+        let controller = RecordingLoginItemController(status: .requiresApproval, approvalRequired: true)
+        let service = LoginItemOperationService(store: LoginItemStore(controller: controller))
+
+        let pending = try await service.loginItemState(.init())
+        XCTAssertFalse(pending.enabled, "A login item awaiting approval does not open at login")
+        XCTAssertEqual(pending.status, .requires_hyphen_approval)
+
+        do {
+            _ = try await service.loginItemSet(.init(enabled: true))
+            XCTFail("Enabling must fail while System Settings blocks the item")
+        } catch {
+            XCTAssertEqual(MacAutomationErrors.normalize(error).code, "capability_unavailable")
+        }
+
+        let disabled = try await service.loginItemSet(.init(enabled: false))
+        XCTAssertEqual(disabled.status, .disabled, "Turning it off clears the pending registration")
+    }
+
     func testHotkeyParsingRoundTripsAndRejectsUnusableShortcuts() throws {
         let shortcut = try XCTUnwrap(HotkeyShortcut(parsing: "opt+cmd+a"))
         XCTAssertEqual(shortcut.keyCode, 0)

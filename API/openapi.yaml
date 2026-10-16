@@ -540,6 +540,94 @@
         },
         "x-capabilities": []
       }
+    },
+    "/v1/login-item": {
+      "get": {
+        "operationId": "loginItemState",
+        "summary": "Report whether Awake opens at login",
+        "x-cli": {
+          "command": [
+            "login-item",
+            "status"
+          ],
+          "bindings": {}
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginItemStateResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "x-capabilities": [
+          "running-app"
+        ]
+      },
+      "put": {
+        "operationId": "loginItemSet",
+        "summary": "Turn opening at login on or off",
+        "x-cli": {
+          "command": [
+            "login-item",
+            "set"
+          ],
+          "bindings": {
+            "body.enabled": {
+              "option": "--enabled"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginItemStateResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Operation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResult"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginItemSetBody"
+              }
+            }
+          }
+        },
+        "x-capabilities": [
+          "running-app"
+        ]
+      }
     }
   },
   "components": {
@@ -963,6 +1051,58 @@
           }
         },
         "required": [],
+        "additionalProperties": false
+      },
+      "LoginItemState": {
+        "type": "object",
+        "description": "macOS owns this registration, so it also reflects changes made in System Settings > General > Login Items.",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether macOS will open Awake at login."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "enabled",
+              "disabled",
+              "requires-approval"
+            ],
+            "description": "requires-approval means Awake is registered but switched off in System Settings > General > Login Items."
+          }
+        },
+        "required": [
+          "enabled",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "LoginItemStateResult": {
+        "type": "object",
+        "properties": {
+          "requestId": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LoginItemState"
+          }
+        },
+        "required": [
+          "requestId",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "LoginItemSetBody": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
         "additionalProperties": false
       }
     }

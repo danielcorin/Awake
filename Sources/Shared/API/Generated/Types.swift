@@ -71,6 +71,16 @@ public protocol APIProtocol: Sendable {
     /// - Remark: HTTP `POST /v1/configuration/validate`.
     /// - Remark: Generated from `#/paths//v1/configuration/validate/post(configValidate)`.
     func configValidate(_ input: Operations.configValidate.Input) async throws -> Operations.configValidate.Output
+    /// Report whether Awake opens at login
+    ///
+    /// - Remark: HTTP `GET /v1/login-item`.
+    /// - Remark: Generated from `#/paths//v1/login-item/get(loginItemState)`.
+    func loginItemState(_ input: Operations.loginItemState.Input) async throws -> Operations.loginItemState.Output
+    /// Turn opening at login on or off
+    ///
+    /// - Remark: HTTP `PUT /v1/login-item`.
+    /// - Remark: Generated from `#/paths//v1/login-item/put(loginItemSet)`.
+    func loginItemSet(_ input: Operations.loginItemSet.Input) async throws -> Operations.loginItemSet.Output
 }
 
 /// Convenience overloads for operation inputs.
@@ -193,6 +203,26 @@ extension APIProtocol {
         body: Operations.configValidate.Input.Body
     ) async throws -> Operations.configValidate.Output {
         try await configValidate(Operations.configValidate.Input(
+            headers: headers,
+            body: body
+        ))
+    }
+    /// Report whether Awake opens at login
+    ///
+    /// - Remark: HTTP `GET /v1/login-item`.
+    /// - Remark: Generated from `#/paths//v1/login-item/get(loginItemState)`.
+    public func loginItemState(headers: Operations.loginItemState.Input.Headers = .init()) async throws -> Operations.loginItemState.Output {
+        try await loginItemState(Operations.loginItemState.Input(headers: headers))
+    }
+    /// Turn opening at login on or off
+    ///
+    /// - Remark: HTTP `PUT /v1/login-item`.
+    /// - Remark: Generated from `#/paths//v1/login-item/put(loginItemSet)`.
+    public func loginItemSet(
+        headers: Operations.loginItemSet.Input.Headers = .init(),
+        body: Operations.loginItemSet.Input.Body
+    ) async throws -> Operations.loginItemSet.Output {
+        try await loginItemSet(Operations.loginItemSet.Input(
             headers: headers,
             body: body
         ))

@@ -34,6 +34,8 @@ private final class FixtureApplication: ApplicationOperations {
     /// The wake operations run their real logic here; only the IOKit call is
     /// swapped for a recorder, so a scenario run never keeps this Mac awake.
     private let wake: WakeOperationService
+    /// Likewise, the login item is recorded rather than registered with macOS.
+    private let loginItem = LoginItemOperationService(store: LoginItemStore(controller: RecordingLoginItemController()))
 
     init(configuration: AppConfigurationStore) {
         wake = WakeOperationService(sessions: WakeSessionStore(controller: RecordingPowerAssertionController()),
@@ -51,4 +53,6 @@ private final class FixtureApplication: ApplicationOperations {
     func wakeOn(_ input: APIInputs.WakeOn) async throws -> APIData.WakeState { try await wake.wakeOn(input) }
     func wakeOff(_ input: APIInputs.WakeOff) async throws -> APIData.WakeState { try await wake.wakeOff(input) }
     func wakeState(_ input: APIInputs.WakeState) async throws -> APIData.WakeState { try await wake.wakeState(input) }
+    func loginItemState(_ input: APIInputs.LoginItemState) async throws -> APIData.LoginItemState { try await loginItem.loginItemState(input) }
+    func loginItemSet(_ input: APIInputs.LoginItemSet) async throws -> APIData.LoginItemState { try await loginItem.loginItemSet(input) }
 }

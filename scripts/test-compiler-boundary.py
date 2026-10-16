@@ -28,6 +28,10 @@ with tempfile.TemporaryDirectory(prefix='ui-access-probe-', dir='/tmp') as tempo
     assert forbidden.returncode != 0 and "'activate' is inaccessible due to 'internal' protection level" in forbidden.stderr, forbidden.stderr
     forbidden = compile('@MainActor func release(_ store: WakeSessionStore) { _ = store.deactivate() }')
     assert forbidden.returncode != 0 and "'deactivate' is inaccessible due to 'internal' protection level" in forbidden.stderr, forbidden.stderr
+    allowed = compile('@MainActor func readLoginItem(_ store: LoginItemStore) { _ = store.status }')
+    assert allowed.returncode == 0, 'The login item read probe must compile: '+allowed.stderr
+    forbidden = compile('@MainActor func register(_ store: LoginItemStore) throws { _ = try store.setEnabled(true) }')
+    assert forbidden.returncode != 0 and "'setEnabled' is inaccessible due to 'internal' protection level" in forbidden.stderr, forbidden.stderr
     if (ROOT/'Sources/Shared/API/WorkspaceActions.swift').exists():
         allowed = compile('@MainActor func act(_ store: WorkspaceStore) throws { _ = try store.actions.createIssue(title: "Allowed") }')
         assert allowed.returncode == 0, allowed.stderr

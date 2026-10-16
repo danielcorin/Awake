@@ -86,6 +86,25 @@ public enum APIInputs {
             try c.encodeIfPresent(content, forKey: .content)
         }
     }
+    public struct LoginItemSet: Codable, Sendable {
+        public var enabled: Bool
+        public init(enabled: Bool) {
+            self.enabled = enabled
+        }
+        enum CodingKeys: String, CodingKey { case enabled }
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            enabled = try c.decode(Bool.self, forKey: .enabled)
+        }
+        public func encode(to encoder: Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(enabled, forKey: .enabled)
+        }
+    }
+    public struct LoginItemState: Codable, Sendable {
+        public init() {
+        }
+    }
     public struct Quit: Codable, Sendable {
         public init() {
         }
@@ -207,6 +226,28 @@ public enum APIOperations {
             return try await configuration.configValidate(input)
         }
     }
+    public enum LoginItemSet: LocalAppOperation {
+        public typealias Input = APIInputs.LoginItemSet
+        public typealias Output = Components.Schemas.LoginItemState
+        public static let definition: OperationDefinition = .init(id: "loginItemSet", command: ["login-item", "set"], summary: "Turn opening at login on or off", method: "PUT", path: "/v1/login-item", fields: [
+            .init(name: "enabled", location: "body", type: "boolean", required: true, nullable: false, option: "--enabled", argument: nil, description: "")
+        ], destructive: false, upload: false, download: false, responseSchema: "#/components/schemas/LoginItemStateResult", capabilities: ["running-app"])
+        public static func perform(_ input: Input, application: any ApplicationOperations, configuration: any ConfigurationOperations) async throws -> Output {
+            try definition.validate(JSONValue.encode(input))
+            return try await application.loginItemSet(input)
+        }
+    }
+    public enum LoginItemState: LocalAppOperation {
+        public typealias Input = APIInputs.LoginItemState
+        public typealias Output = Components.Schemas.LoginItemState
+        public static let definition: OperationDefinition = .init(id: "loginItemState", command: ["login-item", "status"], summary: "Report whether Awake opens at login", method: "GET", path: "/v1/login-item", fields: [
+
+        ], destructive: false, upload: false, download: false, responseSchema: "#/components/schemas/LoginItemStateResult", capabilities: ["running-app"])
+        public static func perform(_ input: Input, application: any ApplicationOperations, configuration: any ConfigurationOperations) async throws -> Output {
+            try definition.validate(JSONValue.encode(input))
+            return try await application.loginItemState(input)
+        }
+    }
     public enum Quit: LocalAppOperation {
         public typealias Input = APIInputs.Quit
         public typealias Output = Components.Schemas.Message
@@ -285,6 +326,8 @@ public enum OperationID: String, Codable, CaseIterable, Sendable {
     case configSet
     case configUnset
     case configValidate
+    case loginItemSet
+    case loginItemState
     case quit
     case show
     case status
@@ -294,6 +337,8 @@ public enum OperationID: String, Codable, CaseIterable, Sendable {
 }
 
 public protocol ApplicationOperations: Sendable {
+    func loginItemSet(_ input: APIInputs.LoginItemSet) async throws -> Components.Schemas.LoginItemState
+    func loginItemState(_ input: APIInputs.LoginItemState) async throws -> Components.Schemas.LoginItemState
     func quit(_ input: APIInputs.Quit) async throws -> Components.Schemas.Message
     func show(_ input: APIInputs.Show) async throws -> Components.Schemas.Message
     func status(_ input: APIInputs.Status) async throws -> Components.Schemas.AppStatus
@@ -304,6 +349,12 @@ public protocol ApplicationOperations: Sendable {
 public extension ApplicationOperations {
     func dispatchApplication(_ request: AutomationRequest) async throws -> JSONValue? {
         switch request.operation {
+        case "loginItemSet":
+            try APIOperations.LoginItemSet.definition.validate(request.input)
+            return try await JSONValue.encode(loginItemSet(request.input.decode(APIInputs.LoginItemSet.self)))
+        case "loginItemState":
+            try APIOperations.LoginItemState.definition.validate(request.input)
+            return try await JSONValue.encode(loginItemState(request.input.decode(APIInputs.LoginItemState.self)))
         case "quit":
             try APIOperations.Quit.definition.validate(request.input)
             return try await JSONValue.encode(quit(request.input.decode(APIInputs.Quit.self)))

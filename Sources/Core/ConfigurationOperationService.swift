@@ -35,6 +35,7 @@ public enum MacAutomationErrors {
             if case .assertionFailed = wake { return .init("capability_unavailable", wake.localizedDescription) }
             return .init("invalid_input", wake.localizedDescription)
         }
+        if error is LoginItemError { return .init("capability_unavailable", error.localizedDescription) }
         return AutomationFailure.normalize(error)
     }
 }
